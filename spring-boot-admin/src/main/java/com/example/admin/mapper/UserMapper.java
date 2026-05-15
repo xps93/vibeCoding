@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface UserMapper {
@@ -26,4 +27,8 @@ public interface UserMapper {
     int insertUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
 
     int deleteUserRoleByUserId(Long userId);
+
+    List<Map<String, Object>> selectAllPasswords();
+
+    int updatePassword(@Param("id") Long id, @Param("password") String password);
 }

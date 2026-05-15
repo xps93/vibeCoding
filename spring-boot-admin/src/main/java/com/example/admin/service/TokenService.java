@@ -1,10 +1,7 @@
 package com.example.admin.service;
 
-import com.example.admin.entity.LoginLog;
 import com.example.admin.entity.Menu;
-import com.example.admin.entity.Role;
 import com.example.admin.entity.User;
-import com.example.admin.mapper.LoginLogMapper;
 import com.example.admin.mapper.MenuMapper;
 import com.example.admin.mapper.RoleMapper;
 import com.example.admin.mapper.UserMapper;
@@ -12,8 +9,6 @@ import com.example.admin.store.DataStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -32,55 +27,13 @@ public class TokenService {
     @Autowired
     private MenuMapper menuMapper;
 
-    @Autowired
-    private LoginLogMapper loginLogMapper;
-
-    @Autowired
-    private HttpServletRequest request;
-
     /**
-     * @return token string on success, null on wrong credentials, "DISABLED" if account is disabled
+     * Generate a token for an already-authenticated user.
      */
-    public String login(String username, String password) {
-        LoginLog log = new LoginLog();
-        log.setUserName(username);
-        log.setIpAddr(request.getRemoteAddr());
-        log.setLoginTime(LocalDateTime.now());
-
-        if (username == null || password == null) {
-            log.setMsg("用户名或密码为空");
-            log.setStatus(1);
-            loginLogMapper.insert(log);
-            return null;
-        }
-        User user = userMapper.selectByUsername(username);
-        if (user == null || user.getPassword() == null) {
-            log.setMsg("用户名或密码错误");
-            log.setStatus(1);
-            loginLogMapper.insert(log);
-            return null;
-        }
-        String storedPwd = user.getPassword();
-        if (!storedPwd.startsWith("{noop}") || !storedPwd.substring(6).equals(password)) {
-            log.setMsg("用户名或密码错误");
-            log.setStatus(1);
-            loginLogMapper.insert(log);
-            return null;
-        }
-        if (user.getStatus() != null && user.getStatus() == 1) {
-            log.setMsg("账号已停用");
-            log.setStatus(1);
-            loginLogMapper.insert(log);
-            return "DISABLED";
-        }
-
+    public String generateToken(User user) {
         String token = UUID.randomUUID().toString().replace("-", "");
         store.tokenMap.put(token, user.getId());
         store.userTokens.computeIfAbsent(user.getId(), k -> new CopyOnWriteArrayList<>()).add(token);
-
-        log.setMsg("登录成功");
-        log.setStatus(0);
-        loginLogMapper.insert(log);
         return token;
     }
 

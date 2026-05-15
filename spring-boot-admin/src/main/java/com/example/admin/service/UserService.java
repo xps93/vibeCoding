@@ -4,11 +4,11 @@ import com.example.admin.entity.User;
 import com.example.admin.mapper.UserMapper;
 import com.example.admin.store.DataStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -21,6 +21,9 @@ public class UserService {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<User> list(String keyword) {
         List<User> users = userMapper.selectList(keyword);
@@ -44,7 +47,7 @@ public class UserService {
 
     @Transactional
     public User add(User user) {
-        user.setPassword("{noop}" + user.getPassword());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreateTime(java.time.LocalDateTime.now());
         userMapper.insert(user);
         if (user.getRoleIds() != null) {
@@ -66,7 +69,7 @@ public class UserService {
         existing.setStatus(user.getStatus());
 
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            existing.setPassword("{noop}" + user.getPassword());
+            existing.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
         userMapper.update(existing);

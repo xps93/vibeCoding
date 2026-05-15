@@ -1,29 +1,37 @@
-# IDE
-.idea/
-.vscode/
-*.iml
-*.iws
-*.ipr
+# ======================
+# 根目录临时日志
+# ======================
+*.log
+backend.log
+frontend.log
 
-# Java后端
+# ======================
+# 后端 spring-boot-admin
+# ======================
+spring-boot-admin/.idea/
 spring-boot-admin/target/
-*.class
-*.jar
-*.war
+spring-boot-admin/build/
+spring-boot-admin/*.log
+spring-boot-admin/logs/
 
-# 前端
+# ======================
+# 前端 vue-admin
+# ======================
+vue-admin/.idea/
 vue-admin/node_modules/
 vue-admin/dist/
 vue-admin/build/
+vue-admin/.nuxt/
+vue-admin/.output/
+vue-admin/*.log
+vue-admin/vite.log
+vue-admin/.env.local
 
-# 日志
-logs/
-*.log
-
-# 系统
+# ======================
+# 通用文件
+# ======================
 .DS_Store
 Thumbs.db
-
-# 环境变量
-.env
-.env.local
+*.swp
+*.swo
+*~

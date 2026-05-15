@@ -35,9 +35,9 @@ INSERT IGNORE INTO sys_role_menu(role_id, menu_id) VALUES
 
 -- 用户数据
 INSERT IGNORE INTO sys_user(id, username, password, nickname, email, phone, status) VALUES
-(1, 'admin', '{noop}admin123', '管理员', 'admin@example.com', '13800000000', 0),
-(2, 'user', '{noop}user123', '普通用户', 'user@example.com', '13900000000', 0),
-(3, 'test', '{noop}test123', '测试员', 'test@example.com', '13700000000', 0);
+(1, 'admin', '$2a$10$uK7PulDtd5YQYePnuDmNiO2AHO1G7yAucFf/NLk2.67TkL4lmpgX2', '管理员', 'admin@example.com', '13800000000', 0),
+(2, 'user', '$2a$10$rSJHmGmSYknCjEIdxDj5leSElrP0SY4U98NmGjcmyabSkyK.ekqFi', '普通用户', 'user@example.com', '13900000000', 0),
+(3, 'test', '$2a$10$uPLI2hkJ2JN3o2UXou5iBeTOGOXVfFPuTP.vZLzPVO2aTtb8GvXmm', '测试员', 'test@example.com', '13700000000', 0);
 
 -- 用户-角色关联
 INSERT IGNORE INTO sys_user_role(user_id, role_id) VALUES
@@ -129,3 +129,8 @@ INSERT IGNORE INTO sys_role_menu(role_id, menu_id) VALUES
 (1, 57), (1, 58),
 (1, 59), (1, 60),
 (1, 61), (1, 62), (1, 63), (1, 64);
+
+-- 迁移旧的{noop}密码为BCrypt (仅在表中仍存在{noop}前缀时执行)
+UPDATE sys_user SET password = '$2a$10$uK7PulDtd5YQYePnuDmNiO2AHO1G7yAucFf/NLk2.67TkL4lmpgX2' WHERE password = '{noop}admin123';
+UPDATE sys_user SET password = '$2a$10$rSJHmGmSYknCjEIdxDj5leSElrP0SY4U98NmGjcmyabSkyK.ekqFi' WHERE password = '{noop}user123';
+UPDATE sys_user SET password = '$2a$10$uPLI2hkJ2JN3o2UXou5iBeTOGOXVfFPuTP.vZLzPVO2aTtb8GvXmm' WHERE password = '{noop}test123';

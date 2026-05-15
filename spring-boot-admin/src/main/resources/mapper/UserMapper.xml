@@ -66,4 +66,12 @@
         DELETE FROM sys_user_role WHERE user_id = #{userId}
     </delete>
 
+    <select id="selectAllPasswords" resultType="java.util.Map">
+        SELECT id, password FROM sys_user
+    </select>
+
+    <update id="updatePassword">
+        UPDATE sys_user SET password = #{password} WHERE id = #{id}
+    </update>
+
 </mapper>
