@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.MenuMapper">
+
+    <resultMap id="menuMap" type="Menu">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="name" column="name"/>
+        <result property="path" column="path"/>
+        <result property="component" column="component"/>
+        <result property="icon" column="icon"/>
+        <result property="perms" column="perms"/>
+        <result property="menuType" column="menu_type"/>
+        <result property="sort" column="sort"/>
+        <result property="visible" column="visible"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="menuMap">
+        SELECT * FROM sys_menu WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="menuMap">
+        SELECT * FROM sys_menu
+        WHERE menu_type IN ('M', 'C')
+        ORDER BY parent_id, sort
+    </select>
+
+    <select id="selectAll" resultMap="menuMap">
+        SELECT * FROM sys_menu
+        ORDER BY parent_id, sort
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_menu(parent_id, name, path, component, icon, perms, menu_type, sort, visible, status, create_time)
+        VALUES(#{parentId}, #{name}, #{path}, #{component}, #{icon}, #{perms}, #{menuType}, #{sort}, #{visible}, #{status}, #{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_menu
+        SET parent_id = #{parentId},
+            name = #{name},
+            path = #{path},
+            component = #{component},
+            icon = #{icon},
+            perms = #{perms},
+            menu_type = #{menuType},
+            sort = #{sort},
+            visible = #{visible},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_menu WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteChildren">
+        DELETE FROM sys_menu WHERE parent_id = #{parentId}
+    </delete>
+
+</mapper>

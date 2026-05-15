@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.OperLogMapper">
+
+    <resultMap id="operLogMap" type="OperLog">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="businessType" column="business_type"/>
+        <result property="method" column="method"/>
+        <result property="requestMethod" column="request_method"/>
+        <result property="operName" column="oper_name"/>
+        <result property="operUrl" column="oper_url"/>
+        <result property="operIp" column="oper_ip"/>
+        <result property="operParam" column="oper_param"/>
+        <result property="jsonResult" column="json_result"/>
+        <result property="status" column="status"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="operTime" column="oper_time"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="operLogMap">
+        SELECT * FROM sys_oper_log WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="operLogMap">
+        SELECT * FROM sys_oper_log
+        <where>
+            <if test="operName != null and operName != ''">
+                AND oper_name LIKE CONCAT('%', #{operName}, '%')
+            </if>
+            <if test="businessType != null">
+                AND business_type = #{businessType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY oper_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_oper_log(title, business_type, method, request_method, oper_name, oper_url, oper_ip, oper_param, json_result, status, error_msg, oper_time)
+        VALUES(#{title}, #{businessType}, #{method}, #{requestMethod}, #{operName}, #{operUrl}, #{operIp}, #{operParam}, #{jsonResult}, #{status}, #{errorMsg}, #{operTime})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM sys_oper_log WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteAll">
+        DELETE FROM sys_oper_log
+    </delete>
+
+</mapper>

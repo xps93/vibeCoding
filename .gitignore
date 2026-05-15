@@ -1,0 +1,29 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Java后端
+spring-boot-admin/target/
+*.class
+*.jar
+*.war
+
+# 前端
+vue-admin/node_modules/
+vue-admin/dist/
+vue-admin/build/
+
+# 日志
+logs/
+*.log
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.env.local

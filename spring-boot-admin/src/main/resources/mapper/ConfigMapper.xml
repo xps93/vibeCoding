@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.ConfigMapper">
+
+    <resultMap id="configMap" type="Config">
+        <id property="id" column="id"/>
+        <result property="configName" column="config_name"/>
+        <result property="configKey" column="config_key"/>
+        <result property="configValue" column="config_value"/>
+        <result property="configType" column="config_type"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="configMap">
+        SELECT * FROM sys_config WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="configMap">
+        SELECT * FROM sys_config
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (config_name LIKE CONCAT('%', #{keyword}, '%') OR config_key LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <select id="selectByConfigKey" resultMap="configMap">
+        SELECT * FROM sys_config WHERE config_key = #{configKey}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_config(config_name, config_key, config_value, config_type, create_time)
+        VALUES(#{configName}, #{configKey}, #{configValue}, #{configType}, #{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_config
+        SET config_name = #{configName},
+            config_key = #{configKey},
+            config_value = #{configValue},
+            config_type = #{configType}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_config WHERE id = #{id}
+    </delete>
+
+</mapper>
