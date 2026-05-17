@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.AiConfigMapper">
+
+    <resultMap id="configMap" type="com.example.admin.entity.AiConfig">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="temperature" column="temperature"/>
+        <result property="maxTokens" column="max_tokens"/>
+        <result property="systemPrompt" column="system_prompt"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="configMap">
+        SELECT * FROM ai_config WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_config(user_id, temperature, max_tokens, system_prompt, create_time, update_time)
+        VALUES(#{userId}, #{temperature}, #{maxTokens}, #{systemPrompt}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_config SET temperature = #{temperature}, max_tokens = #{maxTokens},
+        system_prompt = #{systemPrompt}, update_time = #{updateTime}
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>
