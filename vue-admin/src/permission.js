@@ -7,10 +7,12 @@ import 'nprogress/nprogress.css'
 NProgress.configure({ showSpinner: false })
 
 const whiteList = ['/login']
+let routesAdded = false
 
-// Generate flat routes from backend menu tree (no nested Layout)
+// 根据后端菜单树生成前端扁平路由
 function generateRoutes(menus) {
   const routes = []
+  // 遍历菜单项生成路由配置
   const walk = (items) => {
     for (const menu of items) {
       if (menu.menuType === 'F') continue
@@ -39,6 +41,22 @@ function generateRoutes(menus) {
   return routes
 }
 
+// 添加动态路由
+function addDynamicRoutes() {
+  const menus = store.state.menus
+  const dynamicRoutes = generateRoutes(menus)
+  router.addRoutes([
+    {
+      path: '/',
+      component: () => import('./layout/index.vue'),
+      redirect: '/dashboard',
+      children: dynamicRoutes.length > 0 ? dynamicRoutes : [{ path: '', redirect: '/dashboard' }]
+    }
+  ])
+  routesAdded = true
+}
+
+// 全局路由前置守卫：校验登录状态并动态加载路由
 router.beforeEach(async (to, from, next) => {
   NProgress.start()
 
@@ -55,28 +73,21 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Has token, has user info loaded?
-  if (store.state.user) {
+  // Fast path: user info and routes both loaded
+  if (store.state.user && routesAdded) {
     next()
     NProgress.done()
     return
   }
 
-  // Fetch user info and generate routes
+  // Need to load user info and/or generate routes
   try {
-    await store.dispatch('getUserInfoAndMenus')
-    const menus = store.state.menus
-    const dynamicRoutes = generateRoutes(menus)
-
-    // Add routes as children of Layout root (flat structure, no nested Layout)
-    router.addRoutes([
-      {
-        path: '/',
-        component: () => import('./layout/index.vue'),
-        redirect: '/dashboard',
-        children: dynamicRoutes.length > 0 ? dynamicRoutes : [{ path: '', redirect: '/dashboard' }]
-      }
-    ])
+    if (!store.state.user) {
+      await store.dispatch('getUserInfoAndMenus')
+    }
+    if (!routesAdded) {
+      addDynamicRoutes()
+    }
     next({ ...to, replace: true })
   } catch (error) {
     store.dispatch('resetState')
@@ -86,6 +97,7 @@ router.beforeEach(async (to, from, next) => {
   NProgress.done()
 })
 
+// 全局路由后置守卫：结束进度条
 router.afterEach(() => {
   NProgress.done()
 })

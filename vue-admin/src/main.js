@@ -8,6 +8,7 @@ import './permission'
 
 Vue.use(ElementUI, { size: 'small' })
 
+// 创建Vue实例并挂载到#app
 new Vue({
   router,
   store,

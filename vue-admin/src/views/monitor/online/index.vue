@@ -27,22 +27,28 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'OnlineUserManagement',
+  // 返回在线用户列表和加载状态
   data() {
     return {
       onlineUsers: [],
       loading: false
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载在线用户列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取在线用户列表数据
     async fetchData() {
       this.loading = true
       const res = await listOnlineUsers()
       this.onlineUsers = res.data || []
       this.loading = false
     },
+    // 确认后强制指定用户下线
     async handleForceLogout(row) {
       this.$confirm(`确认强制下线用户"${row.userName}"?`, '提示', { type: 'warning' }).then(async () => {
         await forceLogout(row.token)

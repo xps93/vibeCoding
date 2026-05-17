@@ -37,14 +37,17 @@ import { getCacheInfo } from '../../../api/cache'
 
 export default {
   name: 'CacheMonitor',
+  // 返回缓存监控页面加载状态和缓存信息
   data() {
     return {
       loading: false,
       cacheInfo: {}
     }
   },
+  // 页面创建时加载缓存信息
   created() { this.fetchData() },
   methods: {
+    // 获取缓存监控数据
     async fetchData() {
       this.loading = true
       try {

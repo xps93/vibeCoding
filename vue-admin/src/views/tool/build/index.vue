@@ -136,6 +136,7 @@ let fieldIdCounter = 1
 
 export default {
   name: 'BuildTool',
+  // 返回构建器页面字段类型列表、已添加字段和代码预览状态
   data() {
     return {
       fieldTypes: [
@@ -155,6 +156,7 @@ export default {
     }
   },
   computed: {
+    // 将当前选中字段的选项数组与文本框文本互相转换
     optionsText: {
       get() {
         if (!this.selectedField || !this.selectedField.options) return ''
@@ -164,6 +166,7 @@ export default {
     }
   },
   methods: {
+    // 添加一个新的表单字段
     addField(ft) {
       const field = {
         id: ++fieldIdCounter,
@@ -181,19 +184,23 @@ export default {
       this.fields.push(field)
       this.selectedField = field
     },
+    // 选中指定字段以在属性面板中编辑
     selectField(f) {
       this.selectedField = f
     },
+    // 将指定字段在列表中上移一位
     moveUp(idx) {
       if (idx === 0) return
       const item = this.fields.splice(idx, 1)[0]
       this.fields.splice(idx - 1, 0, item)
     },
+    // 将指定字段在列表中下移一位
     moveDown(idx) {
       if (idx === this.fields.length - 1) return
       const item = this.fields.splice(idx, 1)[0]
       this.fields.splice(idx + 1, 0, item)
     },
+    // 从列表中移除指定字段
     removeField(idx) {
       this.fields.splice(idx, 1)
       if (this.selectedField && this.selectedField.id === this.fields[idx]?.id) {
@@ -202,21 +209,26 @@ export default {
         this.selectedField = null
       }
     },
+    // 清空所有已添加的字段
     clearAll() {
       this.fields = []
       this.selectedField = null
     },
+    // 判断指定字段类型是否需要显示选项编辑框
     showOptions(type) {
       return type === 'select' || type === 'radio' || type === 'checkbox'
     },
+    // 将文本按行分割同步为字段的选项数组
     syncOptions(val) {
       if (!this.selectedField) return
       this.selectedField.options = val.split('\n').filter(s => s.trim())
     },
+    // 生成代码预览
     previewCode() {
       this.generatedCode = this.buildCode()
       this.codeVisible = true
     },
+    // 根据表单字段构建完整的 Vue 模板代码
     buildCode() {
       const lines = [
         '<template>',
@@ -268,7 +280,7 @@ export default {
       lines.push('  </el-form>')
       lines.push('</template>')
 
-      // Rules
+      // 生成表单验证规则
       const rulesFields = this.fields.filter(f => f.required)
       if (rulesFields.length > 0) {
         lines.push('')
@@ -295,6 +307,7 @@ export default {
 
       return lines.join('\n')
     },
+    // 将生成的代码复制到剪贴板
     copyCode() {
       navigator.clipboard.writeText(this.generatedCode).then(() => {
         this.$message.success('已复制到剪贴板')

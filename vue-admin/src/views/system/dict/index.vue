@@ -121,6 +121,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'DictManagement',
+  // 返回字典类型和字典数据相关的所有状态
   data() {
     return {
       dictTypes: [],
@@ -133,7 +134,7 @@ export default {
         dictName: [{ required: true, message: '必填', trigger: 'blur' }],
         dictType: [{ required: true, message: '必填', trigger: 'blur' }]
       },
-      // Dict data
+      // 字典数据弹窗状态
       dataDialogVisible: false,
       dataDialogTitle: '',
       dataLoading: false,
@@ -148,29 +149,37 @@ export default {
       }
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载字典类型列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取字典类型列表数据
     async fetchData() {
       this.loading = true
       const res = await listDictTypes({ keyword: this.keyword || undefined })
       this.dictTypes = res.data || []
       this.loading = false
     },
+    // 重置搜索关键字并重新查询
     resetSearch() { this.keyword = ''; this.fetchData() },
+    // 打开新增字典类型弹窗
     handleAdd() {
       this.dialogTitle = '新增字典类型'
       this.form = { dictName: '', dictType: '', status: 0 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改字典类型弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改字典类型'
       this.form = { ...row }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改字典类型的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -184,6 +193,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定字典类型
     async handleDelete(row) {
       this.$confirm(`确认删除字典类型"${row.dictName}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteDictType(row.id)
@@ -191,30 +201,35 @@ export default {
         this.fetchData()
       }).catch(() => {})
     },
+    // 打开字典数据管理弹窗
     async handleDictData(row) {
       this.currentDictTypeId = row.id
       this.dataDialogTitle = `字典数据 - ${row.dictName}`
       this.dataDialogVisible = true
       await this.fetchDictData()
     },
+    // 获取当前字典类型下的所有字典数据
     async fetchDictData() {
       this.dataLoading = true
       const res = await listDictDataByTypeId(this.currentDictTypeId)
       this.dictDataList = res.data || []
       this.dataLoading = false
     },
+    // 打开新增字典数据弹窗
     handleDataAdd() {
       this.dataItemDialogTitle = '新增字典数据'
       this.dataForm = { dictLabel: '', dictValue: '', dictSort: 0, status: 0 }
       this.dataItemDialogVisible = true
       this.$nextTick(() => this.$refs.dataForm && this.$refs.dataForm.clearValidate())
     },
+    // 打开修改字典数据弹窗并回填数据
     handleDataEdit(row) {
       this.dataItemDialogTitle = '修改字典数据'
       this.dataForm = { ...row }
       this.dataItemDialogVisible = true
       this.$nextTick(() => this.$refs.dataForm && this.$refs.dataForm.clearValidate())
     },
+    // 提交新增或修改字典数据的表单
     async submitDataForm() {
       this.$refs.dataForm.validate(async valid => {
         if (!valid) return
@@ -229,6 +244,7 @@ export default {
         this.fetchDictData()
       })
     },
+    // 确认后删除指定字典数据项
     async handleDataDelete(row) {
       this.$confirm(`确认删除字典数据"${row.dictLabel}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteDictData(row.id)

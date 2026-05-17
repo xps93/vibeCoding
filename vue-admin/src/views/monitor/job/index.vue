@@ -77,6 +77,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'JobManagement',
+  // 返回定时任务列表数据、搜索关键字和表单状态
   data() {
     return {
       jobs: [],
@@ -92,29 +93,37 @@ export default {
       }
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载定时任务列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取定时任务列表数据
     async fetchData() {
       this.loading = true
       const res = await listJobs({ keyword: this.keyword || undefined })
       this.jobs = res.data || []
       this.loading = false
     },
+    // 重置搜索关键字并重新查询
     resetSearch() { this.keyword = ''; this.fetchData() },
+    // 打开新增定时任务弹窗
     handleAdd() {
       this.dialogTitle = '新增任务'
       this.form = { jobName: '', jobGroup: '', invokeTarget: '', cronExpression: '', status: 0 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改定时任务弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改任务'
       this.form = { ...row }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改定时任务的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -128,6 +137,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定定时任务
     async handleDelete(row) {
       this.$confirm(`确认删除任务"${row.jobName}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteJob(row.id)

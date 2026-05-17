@@ -28,21 +28,26 @@ import { logout } from '../api/login'
 
 export default {
   name: 'Navbar',
+  // 返回当前页面标题
   data() {
     return { currentTitle: '' }
   },
+  // 从 Vuex 获取当前用户信息
   computed: {
     ...mapState(['user'])
   },
+  // 监听路由变化，更新面包屑标题
   watch: {
     '$route'(route) {
       this.currentTitle = route.meta ? route.meta.title : ''
     }
   },
+  // 页面创建时初始化面包屑标题
   created() {
     this.currentTitle = this.$route.meta ? this.$route.meta.title : ''
   },
   methods: {
+    // 处理下拉菜单命令（退出登录）
     async handleCommand(cmd) {
       if (cmd === 'logout') {
         try { await logout() } catch (e) {}

@@ -81,6 +81,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'NoticeManagement',
+  // 返回公告列表数据、搜索关键字和表单状态
   data() {
     return {
       notices: [],
@@ -94,29 +95,37 @@ export default {
       }
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载公告列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取公告列表数据
     async fetchData() {
       this.loading = true
       const res = await listNotices({ keyword: this.keyword || undefined })
       this.notices = res.data || []
       this.loading = false
     },
+    // 重置搜索关键字并重新查询
     resetSearch() { this.keyword = ''; this.fetchData() },
+    // 打开新增公告弹窗
     handleAdd() {
       this.dialogTitle = '新增公告'
       this.form = { noticeTitle: '', noticeType: 1, noticeContent: '', status: 0 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改公告弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改公告'
       this.form = { ...row }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改公告的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -130,6 +139,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定公告
     async handleDelete(row) {
       this.$confirm(`确认删除公告"${row.noticeTitle}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteNotice(row.id)

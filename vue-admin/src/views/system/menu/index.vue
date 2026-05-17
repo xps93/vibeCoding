@@ -92,6 +92,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'MenuManagement',
+  // 返回菜单列表数据、表单数据和菜单树选项
   data() {
     return {
       menus: [],
@@ -106,23 +107,30 @@ export default {
       menuTreeOptions: []
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载菜单列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取菜单列表数据
     async fetchData() {
       this.loading = true
       const res = await listMenus()
       this.menus = res.data || []
       this.loading = false
     },
+    // 获取所有菜单树结构用于上级菜单选择
     async fetchMenuTree() {
       const res = await getAllMenus()
       this.menuTreeOptions = [{ id: 0, name: '根目录', children: res.data || [] }]
     },
+    // 懒加载子菜单（当前返回空数组）
     loadChildren(tree, treeNode, resolve) {
       resolve([])
     },
+    // 打开新增根菜单弹窗
     handleAdd() {
       this.dialogTitle = '新增菜单'
       this.form = { parentId: [0], name: '', menuType: 'M', path: '', component: '', icon: '', perms: '', sort: 0, status: 0 }
@@ -130,6 +138,7 @@ export default {
       this.fetchMenuTree()
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开在指定节点下新增子菜单弹窗
     handleAddChild(row) {
       this.dialogTitle = '新增菜单'
       this.form = { parentId: [row.id], name: '', menuType: 'C', path: '', component: '', icon: '', perms: '', sort: 0, status: 0 }
@@ -137,6 +146,7 @@ export default {
       this.fetchMenuTree()
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改菜单弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改菜单'
       this.form = {
@@ -149,6 +159,7 @@ export default {
       this.fetchMenuTree()
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改菜单的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -165,6 +176,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定菜单
     async handleDelete(row) {
       this.$confirm(`确认删除菜单"${row.name}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteMenu(row.id)

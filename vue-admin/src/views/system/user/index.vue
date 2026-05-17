@@ -86,6 +86,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'UserManagement',
+  // 返回用户列表数据、表单数据和验证规则
   data() {
     return {
       users: [],
@@ -101,27 +102,35 @@ export default {
       }
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载用户列表和角色列表
   created() { this.fetchData(); this.fetchRoles() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取用户列表数据
     async fetchData() {
       this.loading = true
       const res = await listUsers({ keyword: this.keyword || undefined })
       this.users = res.data || []
       this.loading = false
     },
+    // 获取所有角色列表用于分配
     async fetchRoles() {
       const res = await listRoles()
       this.roles = res.data || []
     },
+    // 重置搜索关键字并重新查询
     resetSearch() { this.keyword = ''; this.fetchData() },
+    // 打开新增用户弹窗
     handleAdd() {
       this.dialogTitle = '新增用户'
       this.form = { username: '', nickname: '', email: '', phone: '', password: '', status: 0, roleIds: [] }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改用户弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改用户'
       this.form = { ...row, password: '' }
@@ -129,6 +138,7 @@ export default {
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改用户的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -142,6 +152,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定用户
     async handleDelete(row) {
       this.$confirm(`确认删除用户"${row.username}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteUser(row.id)

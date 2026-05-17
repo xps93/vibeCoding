@@ -76,6 +76,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'RoleManagement',
+  // 返回角色列表数据、表单数据和权限弹窗相关状态
   data() {
     return {
       roles: [],
@@ -92,28 +93,35 @@ export default {
       allMenus: []
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载角色列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取角色列表数据
     async fetchData() {
       this.loading = true
       const res = await listRoles()
       this.roles = res.data || []
       this.loading = false
     },
+    // 打开新增角色弹窗
     handleAdd() {
       this.dialogTitle = '新增角色'
       this.form = { roleName: '', roleKey: '', status: 0 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改角色弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改角色'
       this.form = { ...row }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改角色的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -127,6 +135,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定角色
     async handleDelete(row) {
       this.$confirm(`确认删除角色"${row.roleName}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteRole(row.id)
@@ -134,6 +143,7 @@ export default {
         this.fetchData()
       }).catch(() => {})
     },
+    // 打开分配权限弹窗，加载菜单树并回填已选权限
     async handlePermission(row) {
       this.currentRoleId = row.id
       const menuRes = await getAllMenus()
@@ -145,6 +155,7 @@ export default {
         this.$refs.permTree.setCheckedKeys(checkedIds)
       })
     },
+    // 提交角色的权限分配
     async submitPermission() {
       if (!this.currentRoleId) return
       const checkedKeys = this.$refs.permTree.getCheckedKeys()

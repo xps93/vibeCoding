@@ -81,6 +81,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'DeptManagement',
+  // 返回部门列表数据、搜索关键字和表单状态
   data() {
     return {
       depts: [],
@@ -102,10 +103,14 @@ export default {
       }
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载部门树
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取部门树数据
     async fetchData() {
       this.loading = true
       const res = await getDeptTree()
@@ -113,6 +118,7 @@ export default {
       this.deptOptions = this.buildDeptOptions(this.depts)
       this.loading = false
     },
+    // 递归构建级联选择器所需的部门树结构
     buildDeptOptions(depts) {
       return depts.map(d => ({
         id: d.id,
@@ -120,19 +126,23 @@ export default {
         children: d.children ? this.buildDeptOptions(d.children) : []
       }))
     },
+    // 重置搜索关键字并重新查询
     resetSearch() { this.keyword = ''; this.fetchData() },
+    // 打开新增部门弹窗，可指定上级部门
     handleAdd(row) {
       this.dialogTitle = '新增部门'
       this.form = { parentId: row ? row.id : [], deptName: '', orderNum: 0, leader: '', phone: '', email: '', status: 0 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改部门弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改部门'
       this.form = { ...row }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改部门的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -146,6 +156,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定部门
     async handleDelete(row) {
       this.$confirm(`确认删除部门"${row.deptName}"?`, '提示', { type: 'warning' }).then(async () => {
         await deleteDept(row.id)

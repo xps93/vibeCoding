@@ -73,6 +73,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'PostManagement',
+  // 返回岗位列表数据、搜索关键字和表单状态
   data() {
     return {
       posts: [],
@@ -87,29 +88,37 @@ export default {
       }
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载岗位列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 获取岗位列表数据
     async fetchData() {
       this.loading = true
       const res = await listPosts({ keyword: this.keyword || undefined })
       this.posts = res.data || []
       this.loading = false
     },
+    // 重置搜索关键字并重新查询
     resetSearch() { this.keyword = ''; this.fetchData() },
+    // 打开新增岗位弹窗
     handleAdd() {
       this.dialogTitle = '新增岗位'
       this.form = { postCode: '', postName: '', orderNum: 0, status: 0 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 打开修改岗位弹窗并回填数据
     handleEdit(row) {
       this.dialogTitle = '修改岗位'
       this.form = { ...row }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.form && this.$refs.form.clearValidate())
     },
+    // 提交新增或修改岗位的表单
     async submitForm() {
       this.$refs.form.validate(async valid => {
         if (!valid) return
@@ -123,6 +132,7 @@ export default {
         this.fetchData()
       })
     },
+    // 确认后删除指定岗位
     async handleDelete(row) {
       this.$confirm(`确认删除岗位"${row.postName}"?`, '提示', { type: 'warning' }).then(async () => {
         await deletePost(row.id)

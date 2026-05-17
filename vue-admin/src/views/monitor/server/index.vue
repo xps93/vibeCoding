@@ -47,6 +47,7 @@ import { getServerInfo } from '../../../api/server'
 
 export default {
   name: 'ServerMonitor',
+  // 返回服务器监控页面加载状态和服务信息
   data() {
     return {
       loading: false,
@@ -54,6 +55,7 @@ export default {
     }
   },
   computed: {
+    // 格式化操作系统信息为表格数据
     sysData() {
       if (!this.serverInfo.sys) return []
       const s = this.serverInfo.sys
@@ -64,6 +66,7 @@ export default {
         { label: 'CPU核心数', value: s.cpuCores + ' 核' }
       ]
     },
+    // 格式化 JVM 信息为表格数据
     jvmData() {
       if (!this.serverInfo.jvm) return []
       const j = this.serverInfo.jvm
@@ -74,18 +77,21 @@ export default {
         { label: '空闲内存', value: j.freeMemory }
       ]
     },
+    // 计算已使用的内存量
     usedMemory() {
       if (!this.serverInfo.jvm) return '-'
       const total = parseInt(this.serverInfo.jvm.totalMemory)
       const free = parseInt(this.serverInfo.jvm.freeMemory)
       return (total - free) + 'MB'
     },
+    // 计算内存使用百分比
     memoryPercent() {
       if (!this.serverInfo.jvm) return 0
       const total = parseInt(this.serverInfo.jvm.totalMemory) || 1
       const free = parseInt(this.serverInfo.jvm.freeMemory) || 0
       return Math.round(((total - free) / total) * 100)
     },
+    // 根据内存使用百分比返回对应颜色
     memoryColor() {
       const pct = this.memoryPercent
       if (pct > 80) return '#f56c6c'
@@ -93,8 +99,10 @@ export default {
       return '#67c23a'
     }
   },
+  // 页面创建时加载服务器信息
   created() { this.fetchData() },
   methods: {
+    // 获取服务器监控数据
     async fetchData() {
       this.loading = true
       try {

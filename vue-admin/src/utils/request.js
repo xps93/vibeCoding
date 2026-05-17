@@ -7,7 +7,9 @@ const request = axios.create({
   timeout: 30000
 })
 
-request.interceptors.request.use(config => {
+request.interceptors.request.use(
+  // 请求拦截器：自动携带Token
+  config => {
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -16,6 +18,7 @@ request.interceptors.request.use(config => {
 })
 
 request.interceptors.response.use(
+  // 响应拦截器：统一处理响应结果和401未授权
   response => {
     const res = response.data
     if (res.code === 401) {
@@ -29,6 +32,7 @@ request.interceptors.response.use(
     }
     return res
   },
+  // 响应拦截器：统一处理HTTP错误状态码
   error => {
     if (error.response) {
       if (error.response.status === 401) {

@@ -26,6 +26,7 @@ import { login } from '../../api/login'
 
 export default {
   name: 'Login',
+  // 返回登录表单数据、验证规则和加载状态
   data() {
     return {
       form: { username: 'admin', password: 'admin123' },
@@ -37,6 +38,7 @@ export default {
     }
   },
   methods: {
+    // 处理登录：校验表单、调用登录接口、保存 Token 并跳转首页
     async handleLogin() {
       this.$refs.form.validate(async valid => {
         if (!valid) return

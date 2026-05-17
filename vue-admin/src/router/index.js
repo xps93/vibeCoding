@@ -3,12 +3,12 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-// Public routes (no auth needed)
+// 公开路由（无需登录）
 export const constantRoutes = [{
     path: '/login', component: () => import('../views/login/index.vue'), hidden: true
 }]
 
-// Dynamic routes that map to the backend menu structure
+// 动态路由映射（后端菜单对应前端组件）
 export const dynamicRouteMap = {
     'dashboard/index': () => import('../views/dashboard/index.vue'),
     'system/user/index': () => import('../views/system/user/index.vue'),

@@ -86,6 +86,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'OperLogManagement',
+  // 返回操作日志列表和查询条件状态
   data() {
     return {
       operLogs: [],
@@ -95,10 +96,14 @@ export default {
       detail: {}
     }
   },
+  // 从 Vuex 获取当前用户的权限列表
   computed: { ...mapState(['permissions']) },
+  // 页面创建时加载操作日志列表
   created() { this.fetchData() },
   methods: {
+    // 检查当前用户是否拥有指定权限
     hasPerm(perm) { return this.permissions.includes(perm) },
+    // 根据查询条件获取操作日志列表
     async fetchData() {
       this.loading = true
       const params = {}
@@ -109,11 +114,14 @@ export default {
       this.operLogs = res.data || []
       this.loading = false
     },
+    // 重置查询条件并重新加载
     resetSearch() { this.query = { operName: '', businessType: '', status: '' }; this.fetchData() },
+    // 打开日志详情弹窗
     handleDetail(row) {
       this.detail = { ...row }
       this.detailVisible = true
     },
+    // 确认后删除指定操作日志
     async handleDelete(row) {
       this.$confirm('确认删除该条日志?', '提示', { type: 'warning' }).then(async () => {
         await deleteOperLog(row.id)
@@ -121,6 +129,7 @@ export default {
         this.fetchData()
       }).catch(() => {})
     },
+    // 确认后清空所有操作日志
     async handleClear() {
       this.$confirm('确认清空所有操作日志?', '提示', { type: 'warning' }).then(async () => {
         await clearOperLogs()

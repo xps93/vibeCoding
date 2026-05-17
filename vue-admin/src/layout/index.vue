@@ -27,13 +27,16 @@ import Navbar from './Navbar.vue'
 export default {
   name: 'Layout',
   components: { SidebarMenu, Navbar },
+  // 返回侧边栏折叠状态
   data() {
     return { isCollapsed: false }
   },
+  // 从 Vuex 获取菜单列表
   computed: {
     ...mapState(['menus'])
   },
   methods: {
+    // 切换侧边栏的折叠/展开状态
     toggleCollapse() {
       this.isCollapsed = !this.isCollapsed
     }

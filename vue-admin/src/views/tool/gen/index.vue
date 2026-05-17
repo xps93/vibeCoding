@@ -77,6 +77,7 @@ import { listTables, getTableColumns, generateCode } from '@/api/gen'
 
 export default {
   name: 'GenTool',
+  // 返回代码生成页面的表数据、字段数据、搜索过滤及生成配置状态
   data() {
     return {
       tables: [],
@@ -100,8 +101,10 @@ export default {
       }
     }
   },
+  // 页面创建时加载数据库表列表
   created() { this.fetchTables() },
   methods: {
+    // 获取所有数据库表列表
     async fetchTables() {
       this.loadingTables = true
       try {
@@ -114,6 +117,7 @@ export default {
       }
       this.loadingTables = false
     },
+    // 根据表名关键字过滤数据库表列表
     filterTables() {
       const kw = this.tableKeyword.toLowerCase()
       if (!kw) {
@@ -122,6 +126,7 @@ export default {
         this.filteredTables = this.tables.filter(t => t.tableName.toLowerCase().includes(kw))
       }
     },
+    // 选中表时加载该表的字段列表
     async onTableSelect(row) {
       this.selectedTable = row
       if (!row) { this.columns = []; return }
@@ -134,10 +139,12 @@ export default {
       }
       this.loadingColumns = false
     },
+    // 打开代码生成配置弹窗
     showConfigDialog() {
       this.configVisible = true
       this.$nextTick(() => this.$refs.genForm && this.$refs.genForm.clearValidate())
     },
+    // 执行代码生成操作
     async doGenerate() {
       this.$refs.genForm.validate(async valid => {
         if (!valid || !this.selectedTable) return

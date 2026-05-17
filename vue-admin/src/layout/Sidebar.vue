@@ -32,11 +32,13 @@ import MenuItem from './MenuItem.vue'
 export default {
   name: 'SidebarMenu',
   components: { MenuItem },
+  // 接收父组件传入的菜单列表和折叠状态
   props: {
     menus: { type: Array, default: () => [] },
     isCollapsed: { type: Boolean, default: false }
   },
   computed: {
+    // 返回当前路由路径作为高亮菜单项
     activeMenu() {
       const route = this.$route
       return route.path

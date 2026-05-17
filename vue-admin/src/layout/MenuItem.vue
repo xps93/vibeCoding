@@ -17,11 +17,13 @@
 <script>
 export default {
   name: 'MenuItem',
+  // 接收父组件传入的菜单项和基础路径
   props: {
     menu: { type: Object, required: true },
     basePath: { type: String, default: '' }
   },
   computed: {
+    // 拼接菜单项的完整路由路径
     fullPath() {
       if (!this.basePath || this.basePath === '/') return this.menu.path
       return this.basePath + '/' + this.menu.path.split('/').pop()
