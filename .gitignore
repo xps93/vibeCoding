@@ -13,7 +13,8 @@ spring-boot-admin/target/
 spring-boot-admin/build/
 spring-boot-admin/*.log
 spring-boot-admin/logs/
-
+.claude
+.idea
 # ======================
 # 前端 vue-admin
 # ======================
