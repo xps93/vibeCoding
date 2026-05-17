@@ -1,0 +1,34 @@
+html.dark {
+  --el-bg-color: var(--bg-primary);
+  --el-bg-color-overlay: var(--bg-secondary);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-border-color: var(--border-color);
+  --el-border-color-light: var(--border-light);
+  --el-fill-color: var(--bg-tertiary);
+  --el-fill-color-blank: var(--bg-primary);
+  --el-fill-color-light: var(--bg-secondary);
+  --el-color-primary: var(--accent-color);
+  --el-mask-color: rgba(0, 0, 0, 0.6);
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--accent-color);
+  --el-button-border-color: var(--accent-color);
+  --el-button-hover-bg-color: var(--accent-hover);
+  --el-button-hover-border-color: var(--accent-hover);
+}
+
+.el-input__wrapper {
+  background: var(--bg-input);
+  box-shadow: 0 0 0 1px var(--border-color) inset;
+}
+
+.el-drawer {
+  --el-drawer-bg-color: var(--bg-primary);
+}
+
+.el-popper.is-dark {
+  --el-popper-bg-color: var(--bg-secondary);
+  --el-text-color-primary: var(--text-primary);
+}

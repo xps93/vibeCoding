@@ -1,0 +1,77 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-tertiary: #eef1f6;
+  --bg-sidebar: #fafbfc;
+  --bg-chat: #f8f9fb;
+  --bg-message-user: #e8f0fe;
+  --bg-message-ai: #ffffff;
+  --bg-code: #f6f8fa;
+  --bg-input: #ffffff;
+  --bg-hover: #f0f2f5;
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #606266;
+  --text-tertiary: #909399;
+  --text-code: #24292f;
+
+  --border-color: #e4e7ed;
+  --border-light: #ebeef5;
+
+  --accent-color: #409eff;
+  --accent-hover: #66b1ff;
+  --accent-active: #3a8ee6;
+  --accent-light: #ecf5ff;
+
+  --danger-color: #f56c6c;
+  --success-color: #67c23a;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  --sidebar-width: 280px;
+  --right-panel-width: 320px;
+  --header-height: 56px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-round: 20px;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+}
+
+html.dark {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --bg-sidebar: #16213e;
+  --bg-chat: #1e1e32;
+  --bg-message-user: #1a3a5c;
+  --bg-message-ai: #25254a;
+  --bg-code: #1a1a2e;
+  --bg-input: #16213e;
+  --bg-hover: #252540;
+
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0b0;
+  --text-tertiary: #707080;
+  --text-code: #e0e0e0;
+
+  --border-color: #2d2d4a;
+  --border-light: #252540;
+
+  --accent-color: #409eff;
+  --accent-hover: #66b1ff;
+  --accent-active: #3a8ee6;
+  --accent-light: #1a3a5c;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
