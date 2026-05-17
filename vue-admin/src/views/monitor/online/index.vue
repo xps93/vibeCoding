@@ -9,7 +9,8 @@
       <el-table :data="onlineUsers" border stripe size="small" v-loading="loading">
         <el-table-column type="index" label="#" width="50" align="center"></el-table-column>
         <el-table-column prop="userId" label="用户编号" width="100" align="center"></el-table-column>
-        <el-table-column prop="userName" label="用户名称" width="120"></el-table-column>
+        <el-table-column prop="username" label="登录账号" width="120"></el-table-column>
+        <el-table-column prop="nickname" label="用户名称" width="120"></el-table-column>
         <el-table-column prop="loginTime" label="登录时间" width="170"></el-table-column>
         <el-table-column label="操作" width="120" align="center" fixed="right">
           <template slot-scope="{ row }">
@@ -50,7 +51,7 @@ export default {
     },
     // 确认后强制指定用户下线
     async handleForceLogout(row) {
-      this.$confirm(`确认强制下线用户"${row.userName}"?`, '提示', { type: 'warning' }).then(async () => {
+      this.$confirm(`确认强制下线用户"${row.nickname || row.username}"?`, '提示', { type: 'warning' }).then(async () => {
         await forceLogout(row.token)
         this.$message.success('操作成功')
         this.fetchData()
