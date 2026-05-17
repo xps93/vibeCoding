@@ -130,10 +130,17 @@ INSERT IGNORE INTO sys_role_menu(role_id, menu_id) VALUES
 (1, 59), (1, 60),
 (1, 61), (1, 62), (1, 63), (1, 64);
 
+-- 兼容旧表：为ai_model新增model_key列（若表已存在但缺该列则补充，首次创建时已在schema.sql中包含）
+ALTER TABLE ai_model ADD COLUMN model_key VARCHAR(50) NOT NULL DEFAULT '' COMMENT 'API模型标识' AFTER id;
+
 -- AI模型初始数据
-INSERT IGNORE INTO ai_model(id, name, provider, capabilities, status) VALUES
-(1, 'DeepSeek V4 Pro', 'DeepSeek', 'chat,code,reasoning', 0),
-(2, 'DeepSeek V4 Flash', 'DeepSeek', 'chat', 0);
+INSERT IGNORE INTO ai_model(id, model_key, name, provider, capabilities, status) VALUES
+(1, 'deepseek-chat', 'DeepSeek Chat', 'DeepSeek', 'chat,code,reasoning', 0),
+(2, 'deepseek-reasoner', 'DeepSeek Reasoner', 'DeepSeek', 'chat,reasoning', 0);
+
+-- 兼容旧数据：更新已存在模型的model_key（仅当model_key为空时）
+UPDATE ai_model SET model_key = 'deepseek-chat' WHERE id = 1 AND (model_key IS NULL OR model_key = '');
+UPDATE ai_model SET model_key = 'deepseek-reasoner' WHERE id = 2 AND (model_key IS NULL OR model_key = '');
 
 -- AI知识库初始数据
 INSERT IGNORE INTO ai_knowledge_base(id, name, description, status) VALUES

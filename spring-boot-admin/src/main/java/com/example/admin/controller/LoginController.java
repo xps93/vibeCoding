@@ -152,6 +152,31 @@ public class LoginController {
         return Result.success(tree);
     }
 
+    /** 当前用户修改个人资料 */
+    @PutMapping("/user/profile")
+    public Result updateProfile(@RequestHeader("Authorization") String authHeader,
+                                @RequestBody Map<String, String> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Result.error(401, "未登录");
+        }
+        String token = authHeader.substring(7);
+        User currentUser = tokenService.getUserFromToken(token);
+        if (currentUser == null) {
+            return Result.error(401, "token无效");
+        }
+        User toUpdate = userMapper.selectById(currentUser.getId());
+        if (toUpdate == null) {
+            return Result.error("用户不存在");
+        }
+        if (body.containsKey("nickname")) toUpdate.setNickname(body.get("nickname"));
+        if (body.containsKey("email")) toUpdate.setEmail(body.get("email"));
+        if (body.containsKey("phone")) toUpdate.setPhone(body.get("phone"));
+        if (body.containsKey("avatar")) toUpdate.setAvatar(body.get("avatar"));
+        userMapper.update(toUpdate);
+        toUpdate.setPassword(null);
+        return Result.success(toUpdate);
+    }
+
     /** 记录登录日志 */
     private void recordLoginLog(String username, String ip, int status, String msg) {
         LoginLog log = new LoginLog();

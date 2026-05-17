@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS ai_message (
 -- AI模型表
 CREATE TABLE IF NOT EXISTS ai_model (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  model_key VARCHAR(50) NOT NULL DEFAULT '' COMMENT 'API模型标识，如deepseek-chat',
   name VARCHAR(100) NOT NULL,
   provider VARCHAR(50) NOT NULL DEFAULT '',
   capabilities VARCHAR(200) DEFAULT '' COMMENT '逗号分隔: chat,code,reasoning',

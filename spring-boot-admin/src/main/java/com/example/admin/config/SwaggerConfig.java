@@ -14,7 +14,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("后台管理系统 API")
-                        .description("基于 RuoYi 风格的企业级后台管理系统，提供用户、角色、菜单、部门、岗位、字典、参数、通知、日志、监控、代码生成等完整管理功能。")
+                        .description("企业级后台管理系统（Ds-Ai），提供用户、角色、菜单、部门、岗位、字典、参数、通知、日志、监控、代码生成等完整管理功能。")
                         .version("1.0.0")
                         .contact(new Contact().name("Admin")));
     }
