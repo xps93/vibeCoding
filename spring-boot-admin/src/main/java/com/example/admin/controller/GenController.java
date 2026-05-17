@@ -17,23 +17,27 @@ import java.util.Map;
 @Tag(name = "代码生成", description = "自动生成代码（ZIP下载）")
 @RestController
 @RequestMapping("/api/gen")
+/** 代码生成控制器 */
 public class GenController {
 
     @Autowired
     private GenService genService;
 
+    /** 查询数据库表列表 */
     @GetMapping("/tables")
     public Result tables() {
         List<Map<String, Object>> tables = genService.getTables();
         return Result.success(tables);
     }
 
+    /** 查询指定表的字段信息 */
     @GetMapping("/tables/{tableName}")
     public Result columns(@PathVariable String tableName) {
         List<Map<String, Object>> columns = genService.getColumns(tableName);
         return Result.success(columns);
     }
 
+    /** 生成代码并下载ZIP文件 */
     @PostMapping("/generate")
     public ResponseEntity<byte[]> generate(@RequestBody Map<String, String> params) {
         String tableName = params.get("tableName");

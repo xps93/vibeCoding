@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 用户管理 Service
+ */
 @Service
 public class UserService {
 
@@ -25,6 +28,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * 查询用户列表，支持关键字模糊搜索
+     */
     public List<User> list(String keyword) {
         List<User> users = userMapper.selectList(keyword);
         for (User u : users) {
@@ -33,6 +39,9 @@ public class UserService {
         return users;
     }
 
+    /**
+     * 根据ID查询用户
+     */
     public User getById(Long id) {
         User user = userMapper.selectById(id);
         if (user != null) {
@@ -41,10 +50,16 @@ public class UserService {
         return user;
     }
 
+    /**
+     * 根据用户名查询用户
+     */
     public User getByUsername(String username) {
         return userMapper.selectByUsername(username);
     }
 
+    /**
+     * 新增用户（密码加密，同步保存角色关联）
+     */
     @Transactional
     public User add(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -58,6 +73,9 @@ public class UserService {
         return user;
     }
 
+    /**
+     * 更新用户信息，同步更新角色关联，禁用时清除Token
+     */
     @Transactional
     public User update(User user) {
         User existing = userMapper.selectById(user.getId());
@@ -91,6 +109,9 @@ public class UserService {
         return existing;
     }
 
+    /**
+     * 删除用户及其角色关联
+     */
     @Transactional
     public void delete(Long id) {
         userMapper.deleteUserRoleByUserId(id);

@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "部门管理", description = "组织架构维护")
 @RestController
 @RequestMapping("/api/depts")
+/** 部门控制器 */
 public class DeptController {
 
     @Autowired
     private DeptService deptService;
 
+    /** 查询部门列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:dept:list')")
     public Result list(@RequestParam(required = false) String keyword) {
@@ -25,12 +27,14 @@ public class DeptController {
         return Result.success(list);
     }
 
+    /** 查询部门树 */
     @GetMapping("/tree")
     @PreAuthorize("hasAuthority('system:dept:list')")
     public Result tree() {
         return Result.success(deptService.tree());
     }
 
+    /** 根据ID获取部门详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:dept:list')")
     public Result get(@PathVariable Long id) {
@@ -39,6 +43,7 @@ public class DeptController {
         return Result.success(dept);
     }
 
+    /** 新增部门 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:dept:create')")
     public Result add(@RequestBody Dept dept) {
@@ -46,6 +51,7 @@ public class DeptController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改部门 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:dept:edit')")
     public Result update(@RequestBody Dept dept) {
@@ -54,6 +60,7 @@ public class DeptController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除部门 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:dept:delete')")
     public Result delete(@PathVariable Long id) {

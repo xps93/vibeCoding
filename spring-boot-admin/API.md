@@ -1,32 +1,37 @@
 # API 文档
 
-基于 RuoYi 风格的后台管理系统 API 文档。
+基于 Spring Boot 的后台管理系统 API 文档。
 
 **基础路径**: `http://localhost:8089/api`
 
-**认证方式**: Bearer Token（在请求头中传递 `Authorization: Bearer {token}`）
+**认证方式**: Bearer Token（请求头 `Authorization: Bearer {token}`）
+
+**Swagger UI**: `http://localhost:8089/swagger-ui/index.html`
 
 ---
 
 ## 目录
 
 1. [通用说明](#1-通用说明)
-2. [认证模块](#2-认证模块)
-3. [用户管理](#3-用户管理)
-4. [角色管理](#4-角色管理)
-5. [菜单管理](#5-菜单管理)
-6. [部门管理](#6-部门管理)
-7. [岗位管理](#7-岗位管理)
-8. [字典管理](#8-字典管理)
-9. [参数管理](#9-参数管理)
-10. [通知公告](#10-通知公告)
-11. [操作日志](#11-操作日志)
-12. [登录日志](#12-登录日志)
-13. [在线用户](#13-在线用户)
-14. [定时任务](#14-定时任务)
-15. [监控](#15-监控)
-16. [代码生成](#16-代码生成)
-17. [基础设施](#17-基础设施)
+2. [仪表盘](#2-仪表盘)
+3. [认证管理](#3-认证管理)
+4. [用户管理](#4-用户管理)
+5. [角色管理](#5-角色管理)
+6. [菜单管理](#6-菜单管理)
+7. [部门管理](#7-部门管理)
+8. [岗位管理](#8-岗位管理)
+9. [字典类型管理](#9-字典类型管理)
+10. [字典数据管理](#10-字典数据管理)
+11. [参数配置管理](#11-参数配置管理)
+12. [通知公告管理](#12-通知公告管理)
+13. [操作日志](#13-操作日志)
+14. [登录日志](#14-登录日志)
+15. [在线用户](#15-在线用户)
+16. [定时任务](#16-定时任务)
+17. [系统监控](#17-系统监控)
+18. [代码生成](#18-代码生成)
+19. [基础设施端点](#19-基础设施端点)
+20. [权限标识附录](#20-权限标识附录)
 
 ---
 
@@ -46,7 +51,7 @@
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `code` | int | 200=成功, 401=未登录, 403=无权限, 500=服务器错误 |
+| `code` | int | 200=成功, 401=未登录, 403=无权限, 429=限流, 500=服务器错误 |
 | `msg` | string | 提示信息 |
 | `data` | object | 响应数据（可选） |
 
@@ -57,20 +62,80 @@
 ### 认证流程
 
 ```
-POST /api/login → 返回 { token: "xxx" }
-GET  /api/user/info → 获取用户信息 + 权限列表
+POST /api/login       → 返回 { token: "xxx" }
+GET  /api/user/info   → 获取用户信息 + 权限列表
 GET  /api/menus/routers → 获取菜单树
 ```
 
 所有后续请求需在 Header 中添加 `Authorization: Bearer {token}`。
 
+### 登录限流
+
+| 参数 | 值 |
+|------|-----|
+| 统计维度 | IP + 用户名 |
+| 时间窗口 | 1 分钟 |
+| 最大次数 | 5 次 |
+| 封禁时长 | 15 分钟 |
+| 超限响应 | HTTP 429 `{"code":429,"msg":"登录尝试过于频繁，请15分钟后再试"}` |
+
+登录成功后该维度的失败计数自动清零。
+
 ---
 
-## 2. 认证模块
+## 2. 仪表盘
+
+**Controller**: `DashboardController.java` — `/api/dashboard`
+
+### 2.1 仪表盘统计
+
+```
+GET /api/dashboard
+```
+
+认证: 已登录
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "data": {
+    "stats": {
+      "userCount": 5,
+      "roleCount": 3,
+      "menuCount": 25,
+      "deptCount": 4,
+      "postCount": 6,
+      "onlineCount": 2
+    },
+    "system": {
+      "osName": "Windows 11",
+      "cpuCores": 16,
+      "usedMemory": "256 MB",
+      "maxMemory": "4096 MB",
+      "javaVersion": "1.8.0_162"
+    }
+  }
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `stats.userCount` | 用户总数 |
+| `stats.roleCount` | 角色总数 |
+| `stats.menuCount` | 菜单总数（不含按钮） |
+| `stats.deptCount` | 部门总数 |
+| `stats.postCount` | 岗位总数 |
+| `stats.onlineCount` | 当前在线 Token 数 |
+| `system` | JVM 和操作系统信息 |
+
+---
+
+## 3. 认证管理
 
 **Controller**: `LoginController.java` — `/api`
 
-### 2.1 用户登录
+### 3.1 用户登录
 
 ```
 POST /api/login
@@ -97,13 +162,16 @@ POST /api/login
 }
 ```
 
-**错误响应** (500):
+**错误响应**:
+- `用户名或密码不能为空` — 参数缺失
 - `用户名或密码错误` — 凭据无效
-- `账号已停用，请联系管理员` — 账号被禁用
+- `账号已停用，请联系管理员` — 账号 status=1
 
-**日志记录**: 每次登录尝试自动写入 `sys_login_log` 表。
+**限流**: 登录失败受限流策略控制，超限返回 HTTP 429。
 
-### 2.2 退出登录
+**日志记录**: 每次登录尝试自动写入 `sys_login_log` 表（成功 status=0，失败 status=1）。
+
+### 3.2 退出登录
 
 ```
 POST /api/logout
@@ -115,7 +183,7 @@ POST /api/logout
 
 **响应**: `{"code": 200, "msg": "success"}`
 
-### 2.3 获取用户信息
+### 3.3 获取当前用户信息
 
 ```
 GET /api/user/info
@@ -147,7 +215,7 @@ GET /api/user/info
 
 > `password` 字段在响应中被置为 `null`。
 
-### 2.4 获取路由菜单树
+### 3.4 获取路由菜单树
 
 ```
 GET /api/menus/routers
@@ -192,12 +260,11 @@ GET /api/menus/routers
 
 ---
 
-## 3. 用户管理
+## 4. 用户管理
 
-**Controller**: `UserController.java` — `/api/users`  
-**Service**: `UserService.java` | **Mapper**: `UserMapper.java`
+**Controller**: `UserController.java` — `/api/users`
 
-### 3.1 用户列表
+### 4.1 用户列表
 
 ```
 GET /api/users?keyword=管理员
@@ -209,7 +276,7 @@ GET /api/users?keyword=管理员
 |------|------|------|------|
 | keyword | string | 否 | 用户名模糊搜索 |
 
-### 3.2 用户详情
+### 4.2 用户详情
 
 ```
 GET /api/users/{id}
@@ -217,7 +284,7 @@ GET /api/users/{id}
 
 认证: `system:user:list`
 
-### 3.3 新增用户
+### 4.3 新增用户
 
 ```
 POST /api/users
@@ -237,9 +304,9 @@ POST /api/users
 }
 ```
 
-> 密码会自动添加 `{noop}` 前缀（明文密码）。
+> 密码使用 BCrypt 加密存储。新增用户时，密码不为空则加密后写入。
 
-### 3.4 修改用户
+### 4.4 修改用户
 
 ```
 PUT /api/users
@@ -261,7 +328,7 @@ PUT /api/users
 
 > `password` 为空字符串则不修改密码。用户被禁用（status=1）时自动使所有 Token 失效。
 
-### 3.5 删除用户
+### 4.5 删除用户
 
 ```
 DELETE /api/users/{id}
@@ -269,7 +336,7 @@ DELETE /api/users/{id}
 
 认证: `system:user:delete`
 
-### 3.6 数据权限
+### 4.6 数据权限
 
 | 权限标识 | 操作 |
 |----------|------|
@@ -280,11 +347,11 @@ DELETE /api/users/{id}
 
 ---
 
-## 4. 角色管理
+## 5. 角色管理
 
 **Controller**: `RoleController.java` — `/api/roles`
 
-### 4.1 角色列表
+### 5.1 角色列表
 
 ```
 GET /api/roles?keyword=管理员
@@ -292,7 +359,7 @@ GET /api/roles?keyword=管理员
 
 认证: `system:role:list`
 
-### 4.2 角色详情
+### 5.2 角色详情
 
 ```
 GET /api/roles/{id}
@@ -300,7 +367,7 @@ GET /api/roles/{id}
 
 认证: `system:role:list`
 
-### 4.3 新增角色
+### 5.3 新增角色
 
 ```
 POST /api/roles
@@ -317,7 +384,7 @@ POST /api/roles
 }
 ```
 
-### 4.4 修改角色
+### 5.4 修改角色
 
 ```
 PUT /api/roles
@@ -334,7 +401,7 @@ PUT /api/roles
 }
 ```
 
-### 4.5 删除角色
+### 5.5 删除角色
 
 ```
 DELETE /api/roles/{id}
@@ -342,7 +409,7 @@ DELETE /api/roles/{id}
 
 认证: `system:role:delete`
 
-### 4.6 获取角色菜单 ID 列表
+### 5.6 获取角色菜单 ID 列表
 
 ```
 GET /api/roles/menuIds/{roleId}
@@ -352,7 +419,7 @@ GET /api/roles/menuIds/{roleId}
 
 返回: `{ "code": 200, "data": [1, 2, 3, 4, 5] }`
 
-### 4.7 获取完整菜单树（角色分配用）
+### 5.7 获取完整菜单树（角色分配用）
 
 ```
 GET /api/roles/menus
@@ -360,9 +427,9 @@ GET /api/roles/menus
 
 认证: `system:role:list`
 
-返回完整菜单树（含按钮类型），用于角色权限分配界面。
+返回完整菜单树（含按钮类型 F），用于角色权限分配界面。
 
-### 4.8 数据权限
+### 5.8 数据权限
 
 | 权限标识 | 操作 |
 |----------|------|
@@ -373,11 +440,11 @@ GET /api/roles/menus
 
 ---
 
-## 5. 菜单管理
+## 6. 菜单管理
 
 **Controller**: `MenuController.java` — `/api/menus`
 
-### 5.1 菜单树（仅目录+菜单）
+### 6.1 菜单树（仅目录+菜单）
 
 ```
 GET /api/menus
@@ -387,7 +454,7 @@ GET /api/menus
 
 返回: 树形结构，仅包含 `menuType=M` 和 `menuType=C` 的记录。
 
-### 5.2 完整菜单树（含按钮）
+### 6.2 完整菜单树（含按钮）
 
 ```
 GET /api/menus/all
@@ -397,7 +464,7 @@ GET /api/menus/all
 
 返回: 包含所有类型（M/C/F）的树形结构。
 
-### 5.3 菜单详情
+### 6.3 菜单详情
 
 ```
 GET /api/menus/{id}
@@ -405,7 +472,7 @@ GET /api/menus/{id}
 
 认证: `system:menu:list`
 
-### 5.4 新增菜单
+### 6.4 新增菜单
 
 ```
 POST /api/menus
@@ -429,13 +496,14 @@ POST /api/menus
 ```
 
 **菜单类型说明**:
+
 | menuType | 含义 | 说明 |
 |----------|------|------|
 | M | 目录 | 有子菜单的父级，path=目录路径 |
 | C | 菜单 | 叶子菜单，path+component 指向具体页面 |
 | F | 按钮 | 页面内的操作权限标识 |
 
-### 5.5 修改菜单
+### 6.5 修改菜单
 
 ```
 PUT /api/menus
@@ -443,7 +511,7 @@ PUT /api/menus
 
 认证: `system:menu:edit`
 
-### 5.6 删除菜单
+### 6.6 删除菜单
 
 ```
 DELETE /api/menus/{id}
@@ -453,7 +521,7 @@ DELETE /api/menus/{id}
 
 > 删除菜单时会自动删除其所有子菜单。
 
-### 5.7 数据权限
+### 6.7 数据权限
 
 | 权限标识 | 操作 |
 |----------|------|
@@ -464,11 +532,11 @@ DELETE /api/menus/{id}
 
 ---
 
-## 6. 部门管理
+## 7. 部门管理
 
 **Controller**: `DeptController.java` — `/api/depts`
 
-### 6.1 部门列表
+### 7.1 部门列表
 
 ```
 GET /api/depts?keyword=技术部
@@ -476,7 +544,7 @@ GET /api/depts?keyword=技术部
 
 认证: `system:dept:list`
 
-### 6.2 部门树
+### 7.2 部门树
 
 ```
 GET /api/depts/tree
@@ -486,7 +554,7 @@ GET /api/depts/tree
 
 返回树形结构。
 
-### 6.3 部门详情
+### 7.3 部门详情
 
 ```
 GET /api/depts/{id}
@@ -494,7 +562,7 @@ GET /api/depts/{id}
 
 认证: `system:dept:list`
 
-### 6.4 ~ 6.6 新增 / 修改 / 删除
+### 7.4 ~ 7.6 新增 / 修改 / 删除
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
@@ -506,11 +574,11 @@ GET /api/depts/{id}
 
 ---
 
-## 7. 岗位管理
+## 8. 岗位管理
 
 **Controller**: `PostController.java` — `/api/posts`
 
-### 7.1 岗位列表
+### 8.1 岗位列表
 
 ```
 GET /api/posts?keyword=经理
@@ -518,7 +586,7 @@ GET /api/posts?keyword=经理
 
 认证: `system:post:list`
 
-### 7.2 ~ 7.5 CRUD
+### 8.2 ~ 8.5 CRUD
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
@@ -531,45 +599,85 @@ GET /api/posts?keyword=经理
 
 ---
 
-## 8. 字典管理
-
-包含字典类型和字典数据两个模块。
-
-### 8.1 字典类型
+## 9. 字典类型管理
 
 **Controller**: `DictTypeController.java` — `/api/dict-types`
 
-#### 列表 / 详情 / CRUD
+### 9.1 字典类型列表
+
+```
+GET /api/dict-types?keyword=
+```
+
+认证: `system:dict:list`
+
+### 9.2 字典类型详情
+
+```
+GET /api/dict-types/{id}
+```
+
+认证: `system:dict:list`
+
+### 9.3 按类型编码查询
+
+```
+GET /api/dict-types/dictType/{dictType}
+```
+
+认证: `system:dict:list`
+
+示例: `GET /api/dict-types/dictType/sys_normal_disable`
+
+### 9.4 ~ 9.6 新增 / 修改 / 删除
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
-| GET | `/api/dict-types?keyword=` | `system:dict:list` |
-| GET | `/api/dict-types/{id}` | `system:dict:list` |
-| GET | `/api/dict-types/dictType/{dictType}` | `system:dict:list` |
 | POST | `/api/dict-types` | `system:dict:create` |
 | PUT | `/api/dict-types` | `system:dict:edit` |
 | DELETE | `/api/dict-types/{id}` | `system:dict:delete` |
 
-`GET /api/dict-types/dictType/sys_normal_disable` — 按字典类型编码查询。
+---
 
-### 8.2 字典数据
+## 10. 字典数据管理
 
 **Controller**: `DictDataController.java` — `/api/dict-data`
 
-#### 列表 / 详情 / CRUD
+### 10.1 字典数据列表
+
+```
+GET /api/dict-data?dictTypeId=1
+```
+
+认证: `system:dict:list`
+
+### 10.2 字典数据详情
+
+```
+GET /api/dict-data/{id}
+```
+
+认证: `system:dict:list`
+
+### 10.3 按字典类型查询数据
+
+```
+GET /api/dict-data/type/{dictType}
+```
+
+认证: `system:dict:list`
+
+示例: `GET /api/dict-data/type/sys_normal_disable`
+
+### 10.4 ~ 10.6 新增 / 修改 / 删除
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
-| GET | `/api/dict-data?dictTypeId=1` | `system:dict:list` |
-| GET | `/api/dict-data/{id}` | `system:dict:list` |
-| GET | `/api/dict-data/type/{dictType}` | `system:dict:list` |
 | POST | `/api/dict-data` | `system:dict:create` |
 | PUT | `/api/dict-data` | `system:dict:edit` |
 | DELETE | `/api/dict-data/{id}` | `system:dict:delete` |
 
-`GET /api/dict-data/type/sys_normal_disable` — 按字典类型编码查询其下所有字典数据。
-
-### 8.3 数据权限
+### 10.7 数据权限
 
 | 权限标识 | 操作 |
 |----------|------|
@@ -580,11 +688,11 @@ GET /api/posts?keyword=经理
 
 ---
 
-## 9. 参数管理
+## 11. 参数配置管理
 
 **Controller**: `ConfigController.java` — `/api/configs`
 
-### 9.1 参数列表
+### 11.1 参数列表
 
 ```
 GET /api/configs?keyword=
@@ -592,7 +700,7 @@ GET /api/configs?keyword=
 
 认证: `system:config:list`
 
-### 9.2 ~ 9.5 CRUD
+### 11.2 ~ 11.5 CRUD
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
@@ -605,11 +713,11 @@ GET /api/configs?keyword=
 
 ---
 
-## 10. 通知公告
+## 12. 通知公告管理
 
 **Controller**: `NoticeController.java` — `/api/notices`
 
-### 10.1 ~ 10.5 CRUD
+### 12.1 ~ 12.5 CRUD
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
@@ -619,17 +727,17 @@ GET /api/configs?keyword=
 | PUT | `/api/notices` | `system:notice:edit` |
 | DELETE | `/api/notices/{id}` | `system:notice:delete` |
 
-通知数据模型: `noticeTitle, noticeType`（1=通知, 2=公告）, `noticeContent`, `status`
+通知数据模型: `noticeTitle, noticeType`（1=通知, 2=公告）, `noticeContent, status`
 
 ---
 
-## 11. 操作日志
+## 13. 操作日志
 
 **Controller**: `OperLogController.java` — `/api/oper-logs`
 
 > 操作日志由 AOP 切面（`LogAspect`）自动记录，无需手动写入。
 
-### 11.1 日志列表
+### 13.1 日志列表
 
 ```
 GET /api/oper-logs?operName=admin&businessType=1&status=0
@@ -640,10 +748,10 @@ GET /api/oper-logs?operName=admin&businessType=1&status=0
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | operName | string | 否 | 操作人用户名 |
-| businessType | int | 否 | 业务类型: 0=查询, 1=新增, 2=修改, 3=删除 |
+| businessType | int | 否 | 业务类型: 1=新增, 2=修改, 3=删除 |
 | status | int | 否 | 状态: 0=正常, 1=异常 |
 
-### 11.2 删除日志
+### 13.2 删除日志
 
 ```
 DELETE /api/oper-logs/{id}
@@ -651,7 +759,7 @@ DELETE /api/oper-logs/{id}
 
 认证: `monitor:operlog:delete`
 
-### 11.3 清空日志
+### 13.3 清空日志
 
 ```
 DELETE /api/oper-logs/clear
@@ -659,12 +767,12 @@ DELETE /api/oper-logs/clear
 
 认证: `monitor:operlog:delete`
 
-### 11.4 日志数据模型
+### 13.4 日志数据模型
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | title | string | 操作标题 |
-| businessType | int | 0=查询, 1=新增, 2=修改, 3=删除 |
+| businessType | int | 1=新增, 2=修改, 3=删除 |
 | method | string | 方法名（Controller类名.方法名） |
 | requestMethod | string | HTTP 方法（GET/POST/PUT/DELETE） |
 | operName | string | 操作人 |
@@ -676,21 +784,21 @@ DELETE /api/oper-logs/clear
 | errorMsg | text | 错误信息 |
 | operTime | datetime | 操作时间 |
 
-### 11.5 自动记录规则
+### 13.5 自动记录规则
 
 - 切面拦截 `com.example.admin.controller` 包下所有 `@RestController`
 - 自动跳过 `/api/login`, `/api/logout`, `/api/user/info`, `/api/menus/routers`
-- 仅记录写操作（新增/修改/删除），纯查询（businessType=0）不记录
+- 仅记录写操作（新增/修改/删除），纯查询不记录
 
 ---
 
-## 12. 登录日志
+## 14. 登录日志
 
 **Controller**: `LoginLogController.java` — `/api/login-logs`
 
-> 登录日志在 `TokenService.login()` 中自动记录。
+> 登录日志在 `LoginController.login()` 中自动记录。
 
-### 12.1 日志列表
+### 14.1 日志列表
 
 ```
 GET /api/login-logs?userName=admin&status=0
@@ -703,7 +811,7 @@ GET /api/login-logs?userName=admin&status=0
 | userName | string | 否 | 用户名 |
 | status | int | 否 | 0=成功, 1=失败 |
 
-### 12.2 删除日志
+### 14.2 删除日志
 
 ```
 DELETE /api/login-logs/{id}
@@ -711,7 +819,7 @@ DELETE /api/login-logs/{id}
 
 认证: `monitor:loginlog:delete`
 
-### 12.3 清空日志
+### 14.3 清空日志
 
 ```
 DELETE /api/login-logs/clear
@@ -719,7 +827,7 @@ DELETE /api/login-logs/clear
 
 认证: `monitor:loginlog:delete`
 
-### 12.4 日志数据模型
+### 14.4 日志数据模型
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -731,12 +839,11 @@ DELETE /api/login-logs/clear
 
 ---
 
-## 13. 在线用户
+## 15. 在线用户
 
-**Controller**: `OnlineUserController.java` — `/api/online-users`  
-**Service**: `OnlineUserService.java`
+**Controller**: `OnlineUserController.java` — `/api/online-users`
 
-### 13.1 在线用户列表
+### 15.1 在线用户列表
 
 ```
 GET /api/online-users
@@ -746,7 +853,7 @@ GET /api/online-users
 
 返回当前所有有效的 Token 及其对应用户信息。
 
-### 13.2 强制退出
+### 15.2 强制退出
 
 ```
 DELETE /api/online-users/{token}
@@ -756,11 +863,13 @@ DELETE /api/online-users/{token}
 
 ---
 
-## 14. 定时任务
+## 16. 定时任务
 
 **Controller**: `JobController.java` — `/api/jobs`
 
-### 14.1 ~ 14.5 CRUD
+> 当前为轻量实现，不依赖 Quartz。提供完整的 CRUD 接口，任务执行需自行集成调度器。
+
+### 16.1 ~ 16.5 CRUD
 
 | 方法 | 路径 | 权限 |
 |------|------|------|
@@ -770,19 +879,17 @@ DELETE /api/online-users/{token}
 | PUT | `/api/jobs` | `monitor:job:edit` |
 | DELETE | `/api/jobs/{id}` | `monitor:job:delete` |
 
-> 当前为轻量实现，不依赖 Quartz。提供完整的 CRUD 接口，任务执行需自行集成调度器。
-
 任务数据模型: `jobName, jobGroup, invokeTarget, cronExpression, status`
 
 ---
 
-## 15. 监控
+## 17. 系统监控
 
 **Controller**: `MonitorController.java` — `/api/monitor`
 
 无需特定权限，任何已认证用户可访问。
 
-### 15.1 服务监控
+### 17.1 服务监控
 
 ```
 GET /api/monitor/server
@@ -808,7 +915,7 @@ GET /api/monitor/server
 }
 ```
 
-### 15.2 缓存监控
+### 17.2 缓存监控
 
 ```
 GET /api/monitor/cache
@@ -830,14 +937,13 @@ GET /api/monitor/cache
 
 ---
 
-## 16. 代码生成
+## 18. 代码生成
 
-**Controller**: `GenController.java` — `/api/gen`  
-**Service**: `GenService.java`
+**Controller**: `GenController.java` — `/api/gen`
 
 无需特定权限，任何已认证用户可访问。
 
-### 16.1 获取数据库表列表
+### 18.1 获取数据库表列表
 
 ```
 GET /api/gen/tables
@@ -845,7 +951,7 @@ GET /api/gen/tables
 
 返回所有 `sys_%` 前缀的表名和注释。
 
-### 16.2 获取表字段详情
+### 18.2 获取表字段详情
 
 ```
 GET /api/gen/tables/{tableName}
@@ -853,7 +959,7 @@ GET /api/gen/tables/{tableName}
 
 返回指定表的列信息（列名、类型、注释、主键、可空等）。
 
-### 16.3 生成代码
+### 18.3 生成代码
 
 ```
 POST /api/gen/generate
@@ -870,7 +976,7 @@ POST /api/gen/generate
 
 **响应**: 返回 ZIP 文件下载（`Content-Type: application/octet-stream`）。
 
-ZIP 包含的文件:
+**ZIP 包含的文件**:
 
 | 路径 | 说明 |
 |------|------|
@@ -884,9 +990,9 @@ ZIP 包含的文件:
 
 ---
 
-## 17. 基础设施
+## 19. 基础设施端点
 
-### 17.1 Spring Boot Actuator
+### 19.1 Spring Boot Actuator
 
 ```
 GET /actuator/health
@@ -896,20 +1002,33 @@ GET /actuator/metrics
 
 无需认证，已公开访问。
 
-### 17.2 Swagger UI (SpringDoc OpenAPI)
+### 19.2 Swagger UI
 
 ```
 GET /swagger-ui/index.html
 GET /v3/api-docs
+GET /doc.html
 ```
 
 无需认证，已公开访问。
 
+**API 分组** (Swagger 配置):
 
-## 附录: 完整权限标识列表
+| 分组名称 | 包含的 Controller |
+|----------|-------------------|
+| 认证管理 | LoginController |
+| 系统管理 | User, Role, Menu, Dept, Post, DictType, DictData, Config, Notice |
+| 系统监控 | OperLog, LoginLog, OnlineUser, Job, Monitor, Dashboard |
+| 系统工具 | Gen |
 
-| 权限标识 | 所属模块 |
-|----------|----------|
+---
+
+## 20. 权限标识附录
+
+### 系统管理
+
+| 权限标识 | 模块 |
+|----------|------|
 | `system:user:list` | 用户管理 |
 | `system:user:create` | 用户管理 |
 | `system:user:edit` | 用户管理 |
@@ -942,6 +1061,11 @@ GET /v3/api-docs
 | `system:notice:create` | 通知公告 |
 | `system:notice:edit` | 通知公告 |
 | `system:notice:delete` | 通知公告 |
+
+### 系统监控
+
+| 权限标识 | 模块 |
+|----------|------|
 | `monitor:operlog:list` | 操作日志 |
 | `monitor:operlog:delete` | 操作日志 |
 | `monitor:loginlog:list` | 登录日志 |

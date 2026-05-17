@@ -28,6 +28,7 @@ import java.util.*;
 @Tag(name = "认证管理", description = "用户登录、退出、获取用户信息与菜单路由")
 @RestController
 @RequestMapping("/api")
+/** 登录认证控制器 */
 public class LoginController {
 
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
@@ -59,6 +60,7 @@ public class LoginController {
     @Autowired
     private HttpServletRequest request;
 
+    /** 用户登录 */
     @PostMapping("/login")
     public Result login(@RequestBody Map<String, String> body) {
         String username = body.get("username");
@@ -101,6 +103,7 @@ public class LoginController {
         }
     }
 
+    /** 用户退出登录 */
     @PostMapping("/logout")
     public Result logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -109,6 +112,7 @@ public class LoginController {
         return Result.success();
     }
 
+    /** 获取当前用户信息 */
     @GetMapping("/user/info")
     public Result userInfo(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -133,6 +137,7 @@ public class LoginController {
         return Result.success(data);
     }
 
+    /** 获取用户菜单路由 */
     @GetMapping("/menus/routers")
     public Result getRouters(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -147,6 +152,7 @@ public class LoginController {
         return Result.success(tree);
     }
 
+    /** 记录登录日志 */
     private void recordLoginLog(String username, String ip, int status, String msg) {
         LoginLog log = new LoginLog();
         log.setUserName(username);

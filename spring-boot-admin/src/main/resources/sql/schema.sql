@@ -175,6 +175,65 @@ CREATE TABLE sys_job (
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ==================== AI 模块表 ====================
+
+DROP TABLE IF EXISTS ai_message;
+DROP TABLE IF EXISTS ai_conversation;
+DROP TABLE IF EXISTS ai_model;
+DROP TABLE IF EXISTS ai_knowledge_base;
+DROP TABLE IF EXISTS ai_config;
+
+-- AI对话表
+CREATE TABLE ai_conversation (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200) NOT NULL DEFAULT '新对话',
+  user_id BIGINT NOT NULL,
+  model_id VARCHAR(50) DEFAULT '',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_conv_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- AI消息表
+CREATE TABLE ai_message (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  conversation_id BIGINT NOT NULL,
+  role VARCHAR(20) NOT NULL COMMENT 'user/assistant/system',
+  content TEXT NOT NULL,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_msg_conv (conversation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- AI模型表
+CREATE TABLE ai_model (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  provider VARCHAR(50) NOT NULL DEFAULT '',
+  capabilities VARCHAR(200) DEFAULT '' COMMENT '逗号分隔: chat,code,reasoning',
+  status INT DEFAULT 0 COMMENT '0=启用 1=禁用',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- AI知识库表
+CREATE TABLE ai_knowledge_base (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description VARCHAR(500) DEFAULT '',
+  status INT DEFAULT 0 COMMENT '0=启用 1=禁用',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- AI用户配置表
+CREATE TABLE ai_config (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL UNIQUE,
+  temperature DOUBLE DEFAULT 0.7,
+  max_tokens INT DEFAULT 2048,
+  system_prompt VARCHAR(2000) DEFAULT '你是一个有帮助的AI助手，请用简洁清晰的中文回答问题。',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ==================== 初始数据 ====================
 
 -- 菜单数据
@@ -223,3 +282,12 @@ INSERT INTO sys_user_role(user_id, role_id) VALUES
 (1, 1),
 (2, 2),
 (3, 2);
+
+-- AI模型初始数据
+INSERT INTO ai_model(id, name, provider, capabilities, status) VALUES
+(1, 'DeepSeek V4 Pro', 'DeepSeek', 'chat,code,reasoning', 0),
+(2, 'DeepSeek V4 Flash', 'DeepSeek', 'chat', 0);
+
+-- AI知识库初始数据
+INSERT INTO ai_knowledge_base(id, name, description, status) VALUES
+(1, '通用知识库', '默认通用知识库', 0);

@@ -51,6 +51,10 @@ springdoc:
       display-order: 4
       paths-to-match: /api/gen/**
       packages-to-scan: com.example.admin.controller
+    - group: AI助手
+      display-order: 5
+      paths-to-match: /api/ai/**
+      packages-to-scan: com.example.admin.controller
 
 knife4j:
   enable: true
@@ -58,3 +62,9 @@ knife4j:
     language: zh_cn
     enable-swagger-models: true
     swagger-model-name: 实体类列表
+
+# DeepSeek AI 配置
+deepseek:
+  api-key: DEEPSEEK_API_KEY_REMOVED
+  base-url: https://api.deepseek.com
+  default-model: deepseek-v4-pro

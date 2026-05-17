@@ -7,13 +7,22 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * 内存数据存储组件，用于缓存运行时数据（如token映射、菜单树等）
+ */
 @Component
 public class DataStore {
 
-    public final Map<String, Long> tokenMap = new ConcurrentHashMap<>(); // token -> userId
-    public final Map<Long, List<String>> userTokens = new ConcurrentHashMap<>(); // userId -> list of tokens
+    /** token -> userId 映射 */
+    public final Map<String, Long> tokenMap = new ConcurrentHashMap<>();
+    /** userId -> token列表 映射 */
+    public final Map<Long, List<String>> userTokens = new ConcurrentHashMap<>();
 
-    // Build menu tree
+    /**
+     * 构建菜单树
+     * @param flatList 扁平的菜单列表
+     * @return 构建完成的菜单树列表
+     */
     public List<Menu> buildTree(List<Menu> flatList) {
         List<Menu> trees = new ArrayList<>();
         Set<Long> ids = new HashSet<>();
@@ -27,6 +36,12 @@ public class DataStore {
         return trees;
     }
 
+    /**
+     * 递归查找子菜单
+     * @param parent 父菜单
+     * @param flatList 扁平的菜单列表
+     * @return 包含子菜单的父菜单
+     */
     private Menu findChildren(Menu parent, List<Menu> flatList) {
         List<Menu> children = new ArrayList<>();
         for (Menu m : flatList) {

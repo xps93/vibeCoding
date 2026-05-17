@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "字典数据管理", description = "字典数据项维护")
 @RestController
 @RequestMapping("/api/dict-data")
+/** 字典数据控制器 */
 public class DictDataController {
 
     @Autowired
     private DictDataService dictDataService;
 
+    /** 根据字典类型ID查询字典数据列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:dict:list')")
     public Result list(@RequestParam Long dictTypeId) {
@@ -25,6 +27,7 @@ public class DictDataController {
         return Result.success(list);
     }
 
+    /** 根据ID获取字典数据详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:dict:list')")
     public Result get(@PathVariable Long id) {
@@ -33,6 +36,7 @@ public class DictDataController {
         return Result.success(dictData);
     }
 
+    /** 根据字典类型标识获取字典数据列表 */
     @GetMapping("/type/{dictType}")
     @PreAuthorize("hasAuthority('system:dict:list')")
     public Result getByDictType(@PathVariable String dictType) {
@@ -41,6 +45,7 @@ public class DictDataController {
         return Result.success(list);
     }
 
+    /** 新增字典数据 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:dict:create')")
     public Result add(@RequestBody DictData dictData) {
@@ -48,6 +53,7 @@ public class DictDataController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改字典数据 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:dict:edit')")
     public Result update(@RequestBody DictData dictData) {
@@ -56,6 +62,7 @@ public class DictDataController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除字典数据 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:dict:delete')")
     public Result delete(@PathVariable Long id) {

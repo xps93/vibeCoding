@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "通知公告管理", description = "通知公告维护")
 @RestController
 @RequestMapping("/api/notices")
+/** 通知公告控制器 */
 public class NoticeController {
 
     @Autowired
     private NoticeService noticeService;
 
+    /** 查询通知公告列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:notice:list')")
     public Result list(@RequestParam(required = false) String keyword) {
@@ -25,6 +27,7 @@ public class NoticeController {
         return Result.success(list);
     }
 
+    /** 根据ID获取通知公告详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:notice:list')")
     public Result get(@PathVariable Long id) {
@@ -33,6 +36,7 @@ public class NoticeController {
         return Result.success(notice);
     }
 
+    /** 新增通知公告 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:notice:create')")
     public Result add(@RequestBody Notice notice) {
@@ -40,6 +44,7 @@ public class NoticeController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改通知公告 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:notice:edit')")
     public Result update(@RequestBody Notice notice) {
@@ -48,6 +53,7 @@ public class NoticeController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除通知公告 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:notice:delete')")
     public Result delete(@PathVariable Long id) {

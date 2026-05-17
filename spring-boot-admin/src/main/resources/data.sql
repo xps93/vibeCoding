@@ -130,6 +130,15 @@ INSERT IGNORE INTO sys_role_menu(role_id, menu_id) VALUES
 (1, 59), (1, 60),
 (1, 61), (1, 62), (1, 63), (1, 64);
 
+-- AI模型初始数据
+INSERT IGNORE INTO ai_model(id, name, provider, capabilities, status) VALUES
+(1, 'DeepSeek V4 Pro', 'DeepSeek', 'chat,code,reasoning', 0),
+(2, 'DeepSeek V4 Flash', 'DeepSeek', 'chat', 0);
+
+-- AI知识库初始数据
+INSERT IGNORE INTO ai_knowledge_base(id, name, description, status) VALUES
+(1, '通用知识库', '默认通用知识库', 0);
+
 -- 迁移旧的{noop}密码为BCrypt (仅在表中仍存在{noop}前缀时执行)
 UPDATE sys_user SET password = '$2a$10$uK7PulDtd5YQYePnuDmNiO2AHO1G7yAucFf/NLk2.67TkL4lmpgX2' WHERE password = '{noop}admin123';
 UPDATE sys_user SET password = '$2a$10$rSJHmGmSYknCjEIdxDj5leSElrP0SY4U98NmGjcmyabSkyK.ekqFi' WHERE password = '{noop}user123';

@@ -17,11 +17,13 @@ import java.util.Properties;
 @Tag(name = "服务监控", description = "服务器与JVM信息、缓存监控")
 @RestController
 @RequestMapping("/api/monitor")
+/** 服务监控控制器 */
 public class MonitorController {
 
     @Autowired
     private DataStore store;
 
+    /** 获取服务器与JVM信息 */
     @GetMapping("/server")
     public Result server() {
         Map<String, Object> info = new HashMap<>();
@@ -49,6 +51,7 @@ public class MonitorController {
         return Result.success(info);
     }
 
+    /** 获取缓存监控信息 */
     @GetMapping("/cache")
     public Result cache() {
         Map<String, Object> info = new HashMap<>();

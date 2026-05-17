@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "用户管理", description = "系统用户增删改查")
 @RestController
 @RequestMapping("/api/users")
+/** 用户控制器 */
 public class UserController {
 
     @Autowired
     private UserService userService;
 
+    /** 查询用户列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:user:list')")
     public Result list(@RequestParam(required = false) String keyword) {
@@ -26,6 +28,7 @@ public class UserController {
         return Result.success(users);
     }
 
+    /** 根据ID获取用户详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:user:list')")
     public Result get(@PathVariable Long id) {
@@ -35,6 +38,7 @@ public class UserController {
         return Result.success(user);
     }
 
+    /** 新增用户 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:user:create')")
     public Result add(@RequestBody User user) {
@@ -43,6 +47,7 @@ public class UserController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改用户 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:user:edit')")
     public Result update(@RequestBody User user) {
@@ -52,6 +57,7 @@ public class UserController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除用户 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:user:delete')")
     public Result delete(@PathVariable Long id) {

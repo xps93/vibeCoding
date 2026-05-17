@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "操作日志", description = "操作日志查询与清理")
 @RestController
 @RequestMapping("/api/oper-logs")
+/** 操作日志控制器 */
 public class OperLogController {
 
     @Autowired
     private OperLogService operLogService;
 
+    /** 查询操作日志列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('monitor:operlog:list')")
     public Result list(@RequestParam(required = false) String operName,
@@ -27,6 +29,7 @@ public class OperLogController {
         return Result.success(list);
     }
 
+    /** 删除操作日志 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('monitor:operlog:delete')")
     public Result delete(@PathVariable Long id) {
@@ -34,6 +37,7 @@ public class OperLogController {
         return Result.success("删除成功");
     }
 
+    /** 清空操作日志 */
     @DeleteMapping("/clear")
     @PreAuthorize("hasAuthority('monitor:operlog:delete')")
     public Result clear() {

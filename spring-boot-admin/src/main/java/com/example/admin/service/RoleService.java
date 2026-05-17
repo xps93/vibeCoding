@@ -8,12 +8,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 角色管理 Service
+ */
 @Service
 public class RoleService {
 
     @Autowired
     private RoleMapper roleMapper;
 
+    /**
+     * 查询角色列表，支持关键字模糊搜索
+     */
     public List<Role> list(String keyword) {
         List<Role> roles = roleMapper.selectList(keyword);
         for (Role r : roles) {
@@ -22,6 +28,9 @@ public class RoleService {
         return roles;
     }
 
+    /**
+     * 根据ID查询角色
+     */
     public Role getById(Long id) {
         Role role = roleMapper.selectById(id);
         if (role != null) {
@@ -30,6 +39,9 @@ public class RoleService {
         return role;
     }
 
+    /**
+     * 新增角色（同步保存菜单权限关联）
+     */
     @Transactional
     public Role add(Role role) {
         role.setCreateTime(java.time.LocalDateTime.now());
@@ -42,6 +54,9 @@ public class RoleService {
         return role;
     }
 
+    /**
+     * 更新角色信息，同步更新菜单权限关联
+     */
     @Transactional
     public Role update(Role role) {
         Role existing = roleMapper.selectById(role.getId());
@@ -65,6 +80,9 @@ public class RoleService {
         return existing;
     }
 
+    /**
+     * 删除角色及其菜单权限关联
+     */
     @Transactional
     public void delete(Long id) {
         roleMapper.deleteRoleMenuByRoleId(id);

@@ -15,6 +15,7 @@ import java.util.List;
 @Tag(name = "角色管理", description = "系统角色增删改查与权限分配")
 @RestController
 @RequestMapping("/api/roles")
+/** 角色控制器 */
 public class RoleController {
 
     @Autowired
@@ -23,12 +24,14 @@ public class RoleController {
     @Autowired
     private MenuService menuService;
 
+    /** 查询角色列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:role:list')")
     public Result list(@RequestParam(required = false) String keyword) {
         return Result.success(roleService.list(keyword));
     }
 
+    /** 根据ID获取角色详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:role:list')")
     public Result get(@PathVariable Long id) {
@@ -37,6 +40,7 @@ public class RoleController {
         return Result.success(role);
     }
 
+    /** 新增角色 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:role:create')")
     public Result add(@RequestBody Role role) {
@@ -44,6 +48,7 @@ public class RoleController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改角色 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:role:edit')")
     public Result update(@RequestBody Role role) {
@@ -52,6 +57,7 @@ public class RoleController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除角色 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:role:delete')")
     public Result delete(@PathVariable Long id) {
@@ -59,6 +65,7 @@ public class RoleController {
         return Result.success("删除成功");
     }
 
+    /** 获取角色的菜单ID列表 */
     @GetMapping("/menuIds/{id}")
     @PreAuthorize("hasAuthority('system:role:list')")
     public Result getMenuIds(@PathVariable Long id) {
@@ -67,6 +74,7 @@ public class RoleController {
         return Result.success(role.getMenuIds());
     }
 
+    /** 获取全部菜单树 */
     @GetMapping("/menus")
     @PreAuthorize("hasAuthority('system:role:list')")
     public Result getAllMenus() {

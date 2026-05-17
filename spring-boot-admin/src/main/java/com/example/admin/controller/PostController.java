@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "岗位管理", description = "系统岗位维护")
 @RestController
 @RequestMapping("/api/posts")
+/** 岗位控制器 */
 public class PostController {
 
     @Autowired
     private PostService postService;
 
+    /** 查询岗位列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:post:list')")
     public Result list(@RequestParam(required = false) String keyword) {
@@ -25,6 +27,7 @@ public class PostController {
         return Result.success(list);
     }
 
+    /** 根据ID获取岗位详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:post:list')")
     public Result get(@PathVariable Long id) {
@@ -33,6 +36,7 @@ public class PostController {
         return Result.success(post);
     }
 
+    /** 新增岗位 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:post:create')")
     public Result add(@RequestBody Post post) {
@@ -40,6 +44,7 @@ public class PostController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改岗位 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:post:edit')")
     public Result update(@RequestBody Post post) {
@@ -48,6 +53,7 @@ public class PostController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除岗位 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:post:delete')")
     public Result delete(@PathVariable Long id) {

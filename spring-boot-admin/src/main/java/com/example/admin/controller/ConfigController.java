@@ -13,11 +13,13 @@ import java.util.List;
 @Tag(name = "参数管理", description = "系统参数配置维护")
 @RestController
 @RequestMapping("/api/configs")
+/** 参数配置控制器 */
 public class ConfigController {
 
     @Autowired
     private ConfigService configService;
 
+    /** 查询参数配置列表 */
     @GetMapping
     @PreAuthorize("hasAuthority('system:config:list')")
     public Result list(@RequestParam(required = false) String keyword) {
@@ -25,6 +27,7 @@ public class ConfigController {
         return Result.success(list);
     }
 
+    /** 根据ID获取参数配置详情 */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:config:list')")
     public Result get(@PathVariable Long id) {
@@ -33,6 +36,7 @@ public class ConfigController {
         return Result.success(config);
     }
 
+    /** 新增参数配置 */
     @PostMapping
     @PreAuthorize("hasAuthority('system:config:create')")
     public Result add(@RequestBody Config config) {
@@ -40,6 +44,7 @@ public class ConfigController {
         return Result.success("新增成功", created);
     }
 
+    /** 修改参数配置 */
     @PutMapping
     @PreAuthorize("hasAuthority('system:config:edit')")
     public Result update(@RequestBody Config config) {
@@ -48,6 +53,7 @@ public class ConfigController {
         return Result.success("修改成功", updated);
     }
 
+    /** 删除参数配置 */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('system:config:delete')")
     public Result delete(@PathVariable Long id) {
