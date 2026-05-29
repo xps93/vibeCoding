@@ -16,7 +16,7 @@
     </div>
   </el-drawer>
   <aside v-else class="right-panel">
-    <div class="panel-header">对话设置</div>
+    <div class="panel-header">{{ $t('settings.title') }}</div>
     <div class="panel-content">
       <ModelSelector />
       <TemperatureSlider />

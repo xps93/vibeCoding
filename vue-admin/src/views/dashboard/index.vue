@@ -111,7 +111,9 @@ export default {
         { key: 'menuCount', label: '菜单数', value: s.menuCount ?? '-', icon: 'el-icon-menu', bg: 'linear-gradient(135deg, #e6a23c, #cf9236)' },
         { key: 'deptCount', label: '部门数', value: s.deptCount ?? '-', icon: 'el-icon-s-data', bg: 'linear-gradient(135deg, #9b59b6, #8e44ad)' },
         { key: 'postCount', label: '岗位数', value: s.postCount ?? '-', icon: 'el-icon-s-flag', bg: 'linear-gradient(135deg, #f56c6c, #e04848)' },
-        { key: 'onlineCount', label: '在线用户', value: s.onlineCount ?? '-', icon: 'el-icon-s-promotion', bg: 'linear-gradient(135deg, #36cfc9, #13c2c2)' }
+        { key: 'onlineCount', label: '在线用户', value: s.onlineCount ?? '-', icon: 'el-icon-s-promotion', bg: 'linear-gradient(135deg, #36cfc9, #13c2c2)' },
+        { key: 'aiConversationCount', label: 'AI会话数', value: s.aiConversationCount ?? '-', icon: 'el-icon-s-comment', bg: 'linear-gradient(135deg, #722ed1, #531dab)' },
+        { key: 'aiModelCount', label: 'AI模型数', value: s.aiModelCount ?? '-', icon: 'el-icon-cpu', bg: 'linear-gradient(135deg, #fa8c16, #d87a0d)' }
       ]
     }
   },
@@ -137,11 +139,11 @@ export default {
 
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
-@media (max-width: 1400px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1400px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 900px)  { .stats-row { grid-template-columns: repeat(2, 1fr); } }
 
 .stat-card {

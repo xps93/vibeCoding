@@ -1,4 +1,5 @@
-html.dark {
+/* 所有主题下 Element Plus 映射 */
+html[data-theme] {
   --el-bg-color: var(--bg-primary);
   --el-bg-color-overlay: var(--bg-secondary);
   --el-text-color-primary: var(--text-primary);

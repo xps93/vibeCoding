@@ -8,9 +8,10 @@
         circle
         @click="$emit('toggle-left')"
       />
-      <span class="toolbar-title">AI 对话</span>
+      <span class="toolbar-title">{{ $t('chat.title') }}</span>
     </div>
     <div class="toolbar-right">
+      <LanguageSwitcher />
       <ThemeToggle />
       <el-button
         v-if="!showRightPanel"
@@ -26,6 +27,7 @@
 <script setup>
 import { Menu, Setting } from '@element-plus/icons-vue'
 import ThemeToggle from './ThemeToggle.vue'
+import LanguageSwitcher from './LanguageSwitcher.vue'
 
 defineProps({
   showSidebar: { type: Boolean, default: true },

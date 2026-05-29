@@ -1,10 +1,10 @@
 <template>
   <div class="setting-block">
-    <div class="setting-label">模型选择</div>
+    <div class="setting-label">{{ $t('settings.selectModel') }}</div>
     <el-select
       :model-value="modelStore.selectedId"
       @update:model-value="modelStore.selectModel"
-      placeholder="请选择模型"
+      :placeholder="$t('settings.selectModelPlaceholder')"
       size="default"
       style="width: 100%"
       :loading="modelStore.loading"

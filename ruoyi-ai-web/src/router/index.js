@@ -25,6 +25,11 @@ const routes = [
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/Profile.vue')
+  },
+  {
+    path: '/share/:shareToken',
+    name: 'share',
+    component: () => import('@/views/ShareView.vue')
   }
 ]
 

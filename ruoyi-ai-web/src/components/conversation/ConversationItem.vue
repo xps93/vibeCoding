@@ -25,16 +25,47 @@
         />
       </template>
       <template v-else>
-        <span class="conv-title" @dblclick.stop="startEdit">{{ item.title || '新对话' }}</span>
+        <span class="conv-title" @dblclick.stop="startEdit">{{ item.title || $t('chat.newChat') }}</span>
         <span class="conv-time">{{ timeText }}</span>
       </template>
     </div>
+    <!-- 收藏星标：收藏后始终可见 -->
+    <button
+      v-show="!editing && !selectMode"
+      class="fav-star"
+      :class="{ 'is-favorited': favorited }"
+      @click.stop="$emit('favorite', item.id)"
+      :title="favorited ? $t('conversation.unfavorite') : $t('conversation.favorite')"
+    >
+      <el-icon :size="14"><StarFilled v-if="favorited" /><Star v-else /></el-icon>
+    </button>
     <div v-show="!editing && !selectMode" class="conv-actions">
+      <!-- 分组移动（仅在收藏夹显示） -->
+      <el-dropdown
+        v-if="showGroupActions && favorited && groups.length > 0"
+        trigger="click"
+        @command="(gid) => $emit('moveGroup', item.id, gid)"
+        @click.stop
+      >
+        <button class="action-btn group-btn" :title="$t('conversation.moveToGroup')">
+          <el-icon :size="12"><FolderOpened /></el-icon>
+        </button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="">{{ $t('conversation.ungrouped') }}</el-dropdown-item>
+            <el-dropdown-item
+              v-for="g in groups"
+              :key="g.id"
+              :command="g.id"
+            >{{ g.name }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <el-button size="small" text :icon="Edit" @click.stop="startEdit" />
       <el-popconfirm
-        title="确定删除该对话？"
-        confirm-button-text="删除"
-        cancel-button-text="取消"
+        :title="$t('conversation.deleteConv')"
+        :confirm-button-text="$t('common.delete')"
+        :cancel-button-text="$t('common.cancel')"
         @confirm="$emit('delete', item.id)"
         @click.stop
       >
@@ -48,17 +79,20 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { ChatDotRound, Edit, Delete } from '@element-plus/icons-vue'
+import { ChatDotRound, Edit, Delete, Star, StarFilled, FolderOpened } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
 
 const props = defineProps({
   item: { type: Object, required: true },
   isActive: { type: Boolean, default: false },
   selectMode: { type: Boolean, default: false },
-  isSelected: { type: Boolean, default: false }
+  isSelected: { type: Boolean, default: false },
+  favorited: { type: Boolean, default: false },
+  showGroupActions: { type: Boolean, default: false },
+  groups: { type: Array, default: () => [] }
 })
 
-const emit = defineEmits(['select', 'delete', 'rename'])
+const emit = defineEmits(['select', 'delete', 'rename', 'favorite', 'moveGroup'])
 
 const editing = ref(false)
 const editTitle = ref('')
@@ -100,6 +134,7 @@ function confirmEdit() {
 
   &:hover {
     background: var(--bg-hover);
+    .fav-star { opacity: 1; }
     .conv-actions { opacity: 1; }
   }
 
@@ -139,11 +174,55 @@ function confirmEdit() {
     }
   }
 
+  .fav-star {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+
+    &:hover {
+      color: #f59e0b;
+    }
+
+    &.is-favorited {
+      opacity: 1;
+      color: #f59e0b;
+    }
+  }
+
   .conv-actions {
     opacity: 0;
     display: flex;
+    align-items: center;
     flex-shrink: 0;
     transition: opacity 0.15s;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--bg-hover);
+      color: var(--accent-color);
+    }
   }
 }
 </style>

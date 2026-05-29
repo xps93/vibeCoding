@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-page" :class="{ dark: isDark }">
+  <div class="auth-page">
     <div class="auth-bg">
       <div class="bg-shapes">
         <div class="shape shape-1"></div>
@@ -14,45 +14,45 @@
           <router-link to="/login" class="back-btn">
             <el-icon><ArrowLeft /></el-icon>
           </router-link>
-          <h1 class="auth-title">找回密码</h1>
-          <p class="auth-subtitle">重置您的登录密码</p>
+          <h1 class="auth-title">{{ $t('account.forgotPassword') }}</h1>
+          <p class="auth-subtitle">{{ $t('account.resetPwdSubtitle') }}</p>
         </div>
 
         <!-- 步骤指示器 -->
         <div class="steps">
           <div :class="['step', { active: step === 1, done: step > 1 }]">
             <span class="step-num">{{ step > 1 ? '✓' : '1' }}</span>
-            <span class="step-label">验证身份</span>
+            <span class="step-label">{{ $t('common.verifyIdentity') }}</span>
           </div>
           <div class="step-line" :class="{ done: step > 1 }"></div>
           <div :class="['step', { active: step === 2 }]">
             <span class="step-num">2</span>
-            <span class="step-label">重置密码</span>
+            <span class="step-label">{{ $t('common.resetPwdStep') }}</span>
           </div>
           <div class="step-line" :class="{ done: step > 2 }"></div>
           <div :class="['step', { active: step === 3 }]">
             <span class="step-num">3</span>
-            <span class="step-label">完成</span>
+            <span class="step-label">{{ $t('common.doneStep') }}</span>
           </div>
         </div>
 
         <!-- 步骤1：验证身份 -->
-        <form v-if="step === 1" class="auth-form" @submit.prevent="verifyIdentity">
+        <form v-if="step === 1" class="auth-form" @submit.prevent="verifyIdentityHandler">
           <div class="form-item">
-            <label class="form-label">手机号</label>
+            <label class="form-label">{{ $t('account.phone') }}</label>
             <div class="input-wrapper">
               <span class="country-code">+86</span>
-              <input v-model="form.phone" type="tel" class="form-input has-prefix" placeholder="请输入注册手机号" maxlength="11" />
+              <input v-model="form.phone" type="tel" class="form-input has-prefix" :placeholder="$t('common.registerPhonePlaceholder')" maxlength="11" />
             </div>
           </div>
 
           <div class="form-item">
-            <label class="form-label">验证码</label>
+            <label class="form-label">{{ $t('account.verificationCode') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Message /></el-icon>
-              <input v-model="form.code" type="text" class="form-input" placeholder="请输入验证码" maxlength="6" />
+              <input v-model="form.code" type="text" class="form-input" :placeholder="$t('common.codePlaceholder')" maxlength="6" />
               <button type="button" class="code-btn" :disabled="countdown > 0 || !validPhone" @click="sendCode">
-                {{ countdown > 0 ? countdown + 's' : '发送验证码' }}
+                {{ countdown > 0 ? countdown + 's' : $t('account.sendCode') }}
               </button>
             </div>
           </div>
@@ -63,17 +63,17 @@
           </div>
 
           <button type="submit" class="auth-btn" :disabled="!canVerify">
-            <span>下一步</span>
+            <span>{{ $t('common.nextStep') }}</span>
           </button>
         </form>
 
         <!-- 步骤2：重置密码 -->
-        <form v-else-if="step === 2" class="auth-form" @submit.prevent="resetPassword">
+        <form v-else-if="step === 2" class="auth-form" @submit.prevent="resetPasswordHandler">
           <div class="form-item">
-            <label class="form-label">新密码</label>
+            <label class="form-label">{{ $t('common.newPassword') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Lock /></el-icon>
-              <input v-model="form.newPassword" :type="showPwd ? 'text' : 'password'" class="form-input" placeholder="请输入新密码（至少6位）" />
+              <input v-model="form.newPassword" :type="showPwd ? 'text' : 'password'" class="form-input" :placeholder="$t('common.newPwdPlaceholder')" />
               <button type="button" class="toggle-pwd" @click="showPwd = !showPwd">
                 <el-icon><View v-if="!showPwd" /><Hide v-else /></el-icon>
               </button>
@@ -81,10 +81,10 @@
           </div>
 
           <div class="form-item">
-            <label class="form-label">确认新密码</label>
+            <label class="form-label">{{ $t('common.confirmNewPassword') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Lock /></el-icon>
-              <input v-model="form.confirmPassword" :type="showPwd ? 'text' : 'password'" class="form-input" placeholder="请再次输入新密码" />
+              <input v-model="form.confirmPassword" :type="showPwd ? 'text' : 'password'" class="form-input" :placeholder="$t('common.reEnterPwdPlaceholder')" />
             </div>
           </div>
 
@@ -94,7 +94,7 @@
           </div>
 
           <button type="submit" class="auth-btn" :disabled="!canReset">
-            <span>重置密码</span>
+            <span>{{ $t('account.resetPassword') }}</span>
           </button>
         </form>
 
@@ -103,21 +103,19 @@
           <div class="done-icon">
             <el-icon :size="48"><CircleCheckFilled /></el-icon>
           </div>
-          <h2 class="done-title">密码重置成功</h2>
-          <p class="done-desc">请使用新密码重新登录</p>
-          <router-link to="/login" class="auth-btn done-btn">返回登录</router-link>
+          <h2 class="done-title">{{ $t('common.resetPwdSuccess') }}</h2>
+          <p class="done-desc">{{ $t('common.resetPwdSuccessDesc') }}</p>
+          <router-link to="/login" class="auth-btn done-btn">{{ $t('account.backToLogin') }}</router-link>
         </div>
 
         <div class="auth-footer">
-          <router-link to="/login" class="link">返回登录</router-link>
+          <router-link to="/login" class="link">{{ $t('account.backToLogin') }}</router-link>
         </div>
       </div>
 
       <div class="theme-toggle-wrapper">
-        <button class="theme-btn" @click="toggleTheme">
-          <el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
-          <span>{{ isDark ? '浅色模式' : '深色模式' }}</span>
-        </button>
+        <LanguageSwitcher />
+        <ThemeToggle />
       </div>
     </div>
   </div>
@@ -125,55 +123,93 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { useThemeStore } from '@/stores/theme'
-import { storeToRefs } from 'pinia'
+import { sendSmsCode, verifyIdentity, resetPassword } from '@/api/auth'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
-const themeStore = useThemeStore()
-const { isDark } = storeToRefs(themeStore)
+const { t } = useI18n()
 
 const step = ref(1)
 const form = ref({ phone: '', code: '', newPassword: '', confirmPassword: '' })
 const showPwd = ref(false)
 const errorMsg = ref('')
 const countdown = ref(0)
+const resetToken = ref('')
+const submitting = ref(false)
 let countdownTimer = null
 
 const validPhone = computed(() => /^1[3-9]\d{9}$/.test(form.value.phone))
 const canVerify = computed(() => validPhone.value && form.value.code.length >= 4)
 const canReset = computed(() => form.value.newPassword.length >= 6 && form.value.newPassword === form.value.confirmPassword)
 
-function toggleTheme() { themeStore.toggle() }
-
-function sendCode() {
+async function sendCode() {
   if (countdown.value > 0 || !validPhone.value) return
-  ElMessage.success('验证码已发送（演示：输入 1234）')
-  countdown.value = 60
-  countdownTimer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) { clearInterval(countdownTimer); countdownTimer = null }
-  }, 1000)
+  try {
+    const res = await sendSmsCode(form.value.phone)
+    if (res.code === 200) {
+      ElMessage.success(t('account.codeSent'))
+      countdown.value = 60
+      countdownTimer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) { clearInterval(countdownTimer); countdownTimer = null }
+      }, 1000)
+    } else {
+      ElMessage.error(res.msg || t('common.networkError'))
+    }
+  } catch (e) {
+    ElMessage.error(t('common.networkError'))
+  }
 }
 
-function verifyIdentity() {
+async function verifyIdentityHandler() {
   errorMsg.value = ''
-  if (!canVerify.value) { errorMsg.value = '请填写手机号和验证码'; return }
-  // 后台逻辑暂不实现
-  step.value = 2
-  errorMsg.value = ''
+  if (!canVerify.value) { errorMsg.value = t('common.fillPhoneAndCode'); return }
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    const res = await verifyIdentity(form.value.phone, form.value.code)
+    if (res.code === 200 && res.data && res.data.resetToken) {
+      resetToken.value = res.data.resetToken
+      step.value = 2
+      errorMsg.value = ''
+    } else {
+      errorMsg.value = res.msg || t('common.verifyFailed')
+    }
+  } catch (e) {
+    errorMsg.value = t('common.networkError')
+  } finally {
+    submitting.value = false
+  }
 }
 
-function resetPassword() {
+async function resetPasswordHandler() {
   errorMsg.value = ''
   if (!canReset.value) {
     if (form.value.newPassword !== form.value.confirmPassword) {
-      errorMsg.value = '两次密码输入不一致'; return
+      errorMsg.value = t('common.passwordMismatch'); return
     }
-    errorMsg.value = '新密码至少6位'; return
+    errorMsg.value = t('common.newPwdMinLength'); return
   }
-  // 后台逻辑暂不实现
-  step.value = 3
-  errorMsg.value = ''
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    const res = await resetPassword({
+      resetToken: resetToken.value,
+      newPassword: form.value.newPassword
+    })
+    if (res.code === 200) {
+      step.value = 3
+      errorMsg.value = ''
+    } else {
+      errorMsg.value = res.msg || t('common.resetPwdFailed')
+    }
+  } catch (e) {
+    errorMsg.value = t('common.networkError')
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -331,7 +367,9 @@ function resetPassword() {
   color: var(--danger-color); background: #fef0f0;
   border-radius: var(--radius-sm); border: 1px solid #fde2e2;
 }
-html.dark .form-error { background: rgba(245, 108, 108, 0.1); border-color: rgba(245, 108, 108, 0.2); }
+html[data-theme="dark"] .form-error,
+html[data-theme="blue-pro"] .form-error,
+html[data-theme="purple"] .form-error { background: rgba(245, 108, 108, 0.1); border-color: rgba(245, 108, 108, 0.2); }
 
 .auth-btn {
   width: 100%; height: 46px;
@@ -358,7 +396,7 @@ html.dark .form-error { background: rgba(245, 108, 108, 0.1); border-color: rgba
 .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-tertiary); }
 .link { color: var(--accent-color); text-decoration: none; &:hover { text-decoration: underline; } }
 
-.theme-toggle-wrapper { margin-top: 24px; }
+.theme-toggle-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
 
 .theme-btn {
   display: flex; align-items: center; gap: 6px;

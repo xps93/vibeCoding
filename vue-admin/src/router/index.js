@@ -28,7 +28,13 @@ export const dynamicRouteMap = {
     'monitor/druid/index': () => import('../views/monitor/druid/index.vue'),
     'tool/gen/index': () => import('../views/tool/gen/index.vue'),
     'tool/swagger/index': () => import('../views/tool/swagger/index.vue'),
-    'tool/build/index': () => import('../views/tool/build/index.vue')
+    'tool/build/index': () => import('../views/tool/build/index.vue'),
+    'ai/model/index': () => import('../views/ai/model/index.vue'),
+    'ai/chat-record/index': () => import('../views/ai/chat-record/index.vue'),
+    'ai/knowledge/index': () => import('../views/ai/knowledge/index.vue'),
+    'ai/assistant-category/index': () => import('../views/ai/assistant-category/index.vue'),
+    'ai/assistant/index': () => import('../views/ai/assistant/index.vue'),
+    'system/site-config/index': () => import('../views/system/site-config/index.vue')
 }
 
 const router = new Router({

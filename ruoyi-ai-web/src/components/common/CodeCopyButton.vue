@@ -7,7 +7,7 @@
     class="code-copy-btn"
     @click="handleCopy"
   >
-    {{ copied ? '已复制' : '复制' }}
+    {{ copied ? $t('common.copied') : $t('common.copy') }}
   </el-button>
 </template>
 

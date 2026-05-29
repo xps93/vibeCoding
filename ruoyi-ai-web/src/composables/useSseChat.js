@@ -3,9 +3,10 @@ import { useConversationStore } from '@/stores/conversation'
 import { useModelStore } from '@/stores/model'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useConfigStore } from '@/stores/config'
-import { sendChatMessage, stopChat } from '@/api/chat'
+import { sendChatMessage, regenerateChat, stopChat } from '@/api/chat'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getActiveToken } from '@/utils/accounts'
 
 export function useSseChat() {
   const chatStore = useChatStore()
@@ -15,29 +16,29 @@ export function useSseChat() {
   const configStore = useConfigStore()
   const router = useRouter()
 
-  async function send(content) {
-    if (!content || !content.trim()) return
+  async function send(content, documentId, attachmentName) {
+    if ((!content || !content.trim()) && !documentId) return
     if (chatStore.isStreaming) return
 
-    // 未登录时跳转到登录页
-    const token = localStorage.getItem('token')
+    const token = getActiveToken()
     if (!token) {
       ElMessage.warning('请先登录后再发送消息')
       router.push({ name: 'login', query: { redirect: '/' } })
       return
     }
 
-    // 没有活跃对话则先创建
     if (!conversationStore.activeId) {
       await conversationStore.create()
-      // 创建失败则中止
       if (!conversationStore.activeId) return
     }
 
-    // 添加用户消息
-    chatStore.addMessage({ role: 'user', content: content.trim() })
+    const displayContent = attachmentName
+      ? `[文档: ${attachmentName}]\n\n${content.trim()}`
+      : content.trim()
+    chatStore.addMessage({ role: 'user', content: displayContent })
     chatStore.setStreaming(true)
     chatStore.currentStreamContent = ''
+    chatStore.currentReasoningContent = ''
     chatStore.error = null
 
     const abortCtrl = new AbortController()
@@ -46,12 +47,14 @@ export function useSseChat() {
     try {
       const response = await sendChatMessage({
         conversationId: conversationStore.activeId,
-        content: content.trim(),
+        content: content ? content.trim() : '',
+        documentId: documentId || null,
         modelId: modelStore.selectedId,
         knowledgeBaseIds: knowledgeStore.selectedIds,
         temperature: configStore.temperature,
         maxTokens: configStore.maxTokens,
-        systemPrompt: configStore.systemPrompt
+        systemPrompt: configStore.systemPrompt,
+        webSearch: chatStore.webSearchEnabled
       }, abortCtrl.signal)
 
       if (!response.ok) {
@@ -59,13 +62,10 @@ export function useSseChat() {
         return
       }
 
-      // 检查 Content-Type 是否表明 SSE，如果不是，则当作普通 JSON 响应处理
       const contentType = response.headers.get('content-type')
       if (contentType && contentType.includes('text/event-stream')) {
-        // SSE 模式
         await readStream(response, abortCtrl)
       } else {
-        // 非 SSE 回退：当作普通 JSON 响应处理
         const data = await response.json()
         if (data.code === 200 && data.data) {
           chatStore.appendToCurrentStream(data.data.content || data.data)
@@ -76,7 +76,67 @@ export function useSseChat() {
       }
     } catch (e) {
       if (e.name === 'AbortError') {
-        // 用户主动停止
+        chatStore.finalizeStream()
+      } else {
+        chatStore.setError(e.message || '网络连接失败')
+      }
+    }
+  }
+
+  // 重新生成：删除最后一条AI回复后重新发起请求
+  async function reGen(previousContent) {
+    if (chatStore.isStreaming) return
+
+    const token = getActiveToken()
+    if (!token) {
+      ElMessage.warning('请先登录后再发送消息')
+      router.push({ name: 'login', query: { redirect: '/' } })
+      return
+    }
+
+    if (!conversationStore.activeId) return
+
+    // 移除最后一条AI消息
+    chatStore.removeLastAssistantMessage()
+
+    chatStore.setStreaming(true)
+    chatStore.currentStreamContent = ''
+    chatStore.currentReasoningContent = ''
+    chatStore.error = null
+
+    const abortCtrl = new AbortController()
+    chatStore.setAbortController(abortCtrl)
+
+    try {
+      const response = await regenerateChat({
+        conversationId: conversationStore.activeId,
+        content: previousContent || '',
+        modelId: modelStore.selectedId,
+        temperature: configStore.temperature,
+        maxTokens: configStore.maxTokens,
+        systemPrompt: configStore.systemPrompt,
+        webSearch: chatStore.webSearchEnabled
+      }, abortCtrl.signal)
+
+      if (!response.ok) {
+        chatStore.setError(`请求失败 (${response.status})`)
+        return
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('text/event-stream')) {
+        await readStream(response, abortCtrl)
+      } else {
+        const data = await response.json()
+        if (data.code === 200 && data.data) {
+          chatStore.appendToCurrentStream(data.data.content || data.data)
+          chatStore.finalizeStream()
+        } else {
+          chatStore.setError(data.msg || '响应格式错误')
+        }
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') {
         chatStore.finalizeStream()
       } else {
         chatStore.setError(e.message || '网络连接失败')
@@ -98,7 +158,6 @@ export function useSseChat() {
 
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
-        // 保留最后一个可能不完整的行
         buffer = lines.pop() || ''
 
         for (const line of lines) {
@@ -124,8 +183,11 @@ export function useSseChat() {
             if (parsed.content) {
               chatStore.appendToCurrentStream(parsed.content)
             }
+            if (parsed.reasoning_content) {
+              chatStore.appendToReasoningStream(parsed.reasoning_content)
+            }
           } catch (e) {
-            // 忽略 JSON 解析错误（可能是部分数据）
+            // 忽略 JSON 解析错误
           }
         }
       }
@@ -134,9 +196,7 @@ export function useSseChat() {
         chatStore.setError('流式传输中断')
       }
     } finally {
-      // 确保 reader 已释放
       try { reader.releaseLock() } catch (e) { /* noop */ }
-      // 如果循环结束但未标记完成
       if (chatStore.isStreaming && !abortCtrl.signal.aborted) {
         chatStore.finalizeStream()
       }
@@ -153,5 +213,5 @@ export function useSseChat() {
     chatStore.stopGeneration()
   }
 
-  return { send, stop }
+  return { send, reGen, stop }
 }

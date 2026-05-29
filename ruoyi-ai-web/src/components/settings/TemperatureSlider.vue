@@ -15,7 +15,7 @@
       show-input
     />
     <div class="setting-hint">
-      值越高回复越随机，值越低回复越确定
+      {{ $t('settings.temperatureHint') }}
     </div>
   </div>
 </template>

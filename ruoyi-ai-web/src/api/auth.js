@@ -1,11 +1,29 @@
 const BASE = '/api'
 
+function postJson(url, body, token) {
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return fetch(url, { method: 'POST', headers, body: JSON.stringify(body) }).then(res => res.json())
+}
+
 export function login(username, password) {
-  return fetch(`${BASE}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  }).then(res => res.json())
+  return postJson(`${BASE}/login`, { username, password })
+}
+
+export function register(data) {
+  return postJson(`${BASE}/register`, data)
+}
+
+export function sendSmsCode(phone) {
+  return postJson(`${BASE}/send-code`, { phone })
+}
+
+export function verifyIdentity(phone, code) {
+  return postJson(`${BASE}/verify-identity`, { phone, code })
+}
+
+export function resetPassword(data) {
+  return postJson(`${BASE}/reset-password`, data)
 }
 
 export function logout(token) {

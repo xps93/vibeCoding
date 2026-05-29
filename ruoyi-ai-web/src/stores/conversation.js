@@ -149,8 +149,14 @@ export const useConversationStore = defineStore('conversation', () => {
 
     if (id) {
       try {
-        const msgs = await listMessages(id)
-        chatStore.setMessages(msgs || [])
+        const res = await listMessages(id)
+        // 后端返回 { messages: [...], ratings: {...} }，需提取 messages 数组
+        const msgs = Array.isArray(res) ? res : (res && res.messages ? res.messages : [])
+        chatStore.setMessages(msgs)
+        // 同步评分数据到 chatStore
+        if (res && res.ratings) {
+          chatStore.messageRatings = res.ratings
+        }
       } catch (e) {
         chatStore.setMessages([])
       }
@@ -161,12 +167,20 @@ export const useConversationStore = defineStore('conversation', () => {
     searchQuery.value = query
   }
 
+  function clear() {
+    items.value = []
+    activeId.value = null
+    searchQuery.value = ''
+    selectMode.value = false
+    selectedIds.value = []
+  }
+
   return {
     items, activeId, searchQuery, loading,
     selectMode, selectedIds, allSelected,
     filteredItems, activeConversation,
     fetchList, create, rename, remove, batchRemove,
     toggleSelect, toggleSelectAll, enterSelectMode, exitSelectMode,
-    setActive, setSearchQuery
+    setActive, setSearchQuery, clear
   }
 })

@@ -1,12 +1,12 @@
 <template>
   <div class="setting-block">
-    <div class="setting-label">系统提示词</div>
+    <div class="setting-label">{{ $t('settings.systemPrompt') }}</div>
     <el-input
       :model-value="configStore.systemPrompt"
       @update:model-value="configStore.updateSystemPrompt"
       type="textarea"
       :rows="4"
-      placeholder="设置AI的系统角色和行为..."
+      :placeholder="$t('settings.systemPromptPlaceholder')"
       resize="vertical"
     />
   </div>

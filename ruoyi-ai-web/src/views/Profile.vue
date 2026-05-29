@@ -1,12 +1,12 @@
 <template>
-  <div class="profile-page" :class="{ dark: isDark }">
+  <div class="profile-page">
     <div class="profile-container">
       <div class="profile-header">
         <button class="back-btn" @click="goBack">
           <el-icon><ArrowLeft /></el-icon>
-          <span>返回</span>
+          <span>{{ $t('common.back') }}</span>
         </button>
-        <h2 class="page-title">个人资料</h2>
+        <h2 class="page-title">{{ $t('account.profileTitle') }}</h2>
       </div>
 
       <div class="profile-card">
@@ -22,13 +22,13 @@
           <div v-if="showAvatarInput" class="avatar-url-input">
             <el-input
               v-model="form.avatar"
-              placeholder="输入头像URL地址"
+              :placeholder="$t('common.avatarUrlPlaceholder')"
               size="small"
               @blur="showAvatarInput = false"
               @keyup.enter="showAvatarInput = false"
             />
           </div>
-          <span class="avatar-hint">点击头像修改，输入图片URL</span>
+          <span class="avatar-hint">{{ $t('common.avatarHint') }}</span>
         </div>
 
         <el-form
@@ -39,29 +39,29 @@
           class="profile-form"
           :rules="rules"
         >
-          <el-form-item label="用户名">
+          <el-form-item :label="$t('account.username')">
             <el-input :model-value="form.username" disabled />
-            <span class="form-tip">用户名不可修改</span>
+            <span class="form-tip">{{ $t('common.usernameReadonly') }}</span>
           </el-form-item>
 
-          <el-form-item label="昵称" prop="nickname">
-            <el-input v-model="form.nickname" placeholder="请输入昵称" maxlength="30" />
+          <el-form-item :label="$t('account.nickname')" prop="nickname">
+            <el-input v-model="form.nickname" :placeholder="$t('common.nicknamePlaceholder')" maxlength="30" />
           </el-form-item>
 
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="100" />
+          <el-form-item :label="$t('account.email')" prop="email">
+            <el-input v-model="form.email" :placeholder="$t('common.emailPlaceholder')" maxlength="100" />
           </el-form-item>
 
-          <el-form-item label="手机号" prop="phone">
-            <el-input v-model="form.phone" placeholder="请输入手机号" maxlength="20" />
+          <el-form-item :label="$t('account.phone')" prop="phone">
+            <el-input v-model="form.phone" :placeholder="$t('common.phoneInputPlaceholder')" maxlength="20" />
           </el-form-item>
 
           <el-form-item>
             <div class="form-actions">
               <el-button type="primary" :loading="saving" @click="handleSave">
-                保存修改
+                {{ $t('common.saveChanges') }}
               </el-button>
-              <el-button @click="handleCancel">取消</el-button>
+              <el-button @click="handleCancel">{{ $t('common.cancel') }}</el-button>
             </div>
           </el-form-item>
         </el-form>
@@ -73,16 +73,17 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, UserFilled, Camera } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
 
+const { t } = useI18n()
+
 const router = useRouter()
 const userStore = useUserStore()
-const themeStore = useThemeStore()
-const { isDark } = storeToRefs(themeStore)
 
 const saving = ref(false)
 const showAvatarInput = ref(false)
@@ -98,10 +99,10 @@ const form = reactive({
 
 const rules = {
   email: [
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+    { type: 'email', message: t('common.emailInvalid'), trigger: 'blur' }
   ],
   phone: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+    { pattern: /^1[3-9]\d{9}$/, message: t('common.phoneInvalid'), trigger: 'blur' }
   ]
 }
 
@@ -127,9 +128,9 @@ async function handleSave() {
       avatar: form.avatar
     }
     await userStore.updateProfile(data)
-    ElMessage.success('保存成功')
+    ElMessage.success(t('common.saveSuccess'))
   } catch (e) {
-    ElMessage.error(e.message || '保存失败')
+    ElMessage.error(e.message || t('common.saveFailed'))
   } finally {
     saving.value = false
   }

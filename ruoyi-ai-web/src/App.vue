@@ -1,19 +1,30 @@
 <template>
-  <div class="app-root" :class="{ dark: isDark }">
-    <router-view />
-  </div>
+  <el-config-provider :locale="epLocale">
+    <div class="app-root">
+      <router-view />
+    </div>
+  </el-config-provider>
 </template>
 
 <script setup>
-import { useThemeStore } from '@/stores/theme'
-import { storeToRefs } from 'pinia'
 import { watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ElConfigProvider } from 'element-plus'
+import { useThemeStore } from '@/stores/theme'
+import { useLocaleStore } from '@/stores/locale'
+import { storeToRefs } from 'pinia'
 
 const themeStore = useThemeStore()
-const { isDark } = storeToRefs(themeStore)
+const localeStore = useLocaleStore()
+const { locale } = useI18n()
+const { epLocale } = storeToRefs(localeStore)
 
-watch(isDark, (val) => {
-  document.documentElement.classList.toggle('dark', val)
+watch(() => themeStore.current, (val) => {
+  document.documentElement.setAttribute('data-theme', val)
+}, { immediate: true })
+
+watch(() => localeStore.current, (val) => {
+  locale.value = val
 }, { immediate: true })
 </script>
 

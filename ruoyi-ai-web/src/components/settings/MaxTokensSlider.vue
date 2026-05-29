@@ -1,7 +1,7 @@
 <template>
   <div class="setting-block">
     <div class="setting-label">
-      最大 Token 数
+      {{ $t('settings.maxTokens') }}
       <span class="setting-value">{{ configStore.maxTokens }}</span>
     </div>
     <el-slider

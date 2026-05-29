@@ -5,7 +5,7 @@
         <el-icon :size="48"><ChatLineRound /></el-icon>
       </div>
       <h1 class="welcome-title">Ds-Ai</h1>
-      <p class="welcome-desc">智能对话，让工作更高效</p>
+      <p class="welcome-desc">{{ $t('chat.emptyDesc') }}</p>
       <div class="welcome-suggestions">
         <div
           v-for="(s, i) in suggestions"

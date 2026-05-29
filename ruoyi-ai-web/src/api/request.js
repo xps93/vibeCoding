@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { getActiveToken } from '@/utils/accounts'
 
 const request = axios.create({
   baseURL: '/api/ai',
@@ -7,7 +8,7 @@ const request = axios.create({
 })
 
 request.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
+  const token = getActiveToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -18,7 +19,6 @@ request.interceptors.response.use(
   response => {
     const res = response.data
     if (res.code === 401) {
-      localStorage.removeItem('token')
       return Promise.reject(new Error(res.msg || '未登录'))
     }
     if (res.code !== 200) {
@@ -28,9 +28,7 @@ request.interceptors.response.use(
     return res.data
   },
   error => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-    } else if (error.response?.status === 403) {
+    if (error.response?.status === 403) {
       ElMessage.error('权限不足')
     } else {
       ElMessage.error(error.message || '网络错误')

@@ -2,7 +2,7 @@
   <div class="conversation-search">
     <el-input
       v-model="query"
-      placeholder="搜索对话..."
+      :placeholder="$t('conversation.searchPlaceholder')"
       :prefix-icon="Search"
       clearable
       size="small"

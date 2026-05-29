@@ -1,5 +1,5 @@
 <template>
-  <div class="login-page" :class="{ dark: isDark }">
+  <div class="login-page">
     <div class="login-bg">
       <div class="bg-shapes">
         <div class="shape shape-1"></div>
@@ -19,7 +19,7 @@
             </svg>
           </div>
           <h1 class="login-title">Ds-Ai</h1>
-          <p class="login-subtitle">登录您的账号，开始AI对话</p>
+          <p class="login-subtitle">{{ $t('account.loginSubtitle') }}</p>
         </div>
 
         <!-- 登录方式切换 -->
@@ -27,24 +27,24 @@
           <button
             :class="['tab-btn', { active: loginMode === 'phone' }]"
             @click="loginMode = 'phone'"
-          >手机登录</button>
+          >{{ $t('common.phoneLogin') }}</button>
           <button
             :class="['tab-btn', { active: loginMode === 'account' }]"
             @click="loginMode = 'account'"
-          >账号登录</button>
+          >{{ $t('common.accountLogin') }}</button>
         </div>
 
         <!-- 手机登录表单 -->
         <form v-if="loginMode === 'phone'" class="login-form" @submit.prevent="handlePhoneLogin">
           <div class="form-item">
-            <label class="form-label">手机号</label>
+            <label class="form-label">{{ $t('account.phone') }}</label>
             <div class="input-wrapper">
               <span class="country-code">+86</span>
               <input
                 v-model="phoneForm.phone"
                 type="tel"
                 class="form-input has-prefix"
-                placeholder="请输入手机号"
+                :placeholder="$t('common.phonePlaceholder')"
                 maxlength="11"
                 :disabled="loading"
               />
@@ -52,14 +52,14 @@
           </div>
 
           <div class="form-item">
-            <label class="form-label">验证码</label>
+            <label class="form-label">{{ $t('account.verificationCode') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Message /></el-icon>
               <input
                 v-model="phoneForm.code"
                 type="text"
                 class="form-input"
-                placeholder="请输入验证码"
+                :placeholder="$t('common.codePlaceholder')"
                 maxlength="6"
                 :disabled="loading"
               />
@@ -68,7 +68,7 @@
                 class="code-btn"
                 :disabled="countdown > 0 || !phoneForm.phone"
                 @click="sendCode"
-              >{{ countdown > 0 ? countdown + 's' : '发送验证码' }}</button>
+              >{{ countdown > 0 ? countdown + 's' : $t('account.sendCode') }}</button>
             </div>
           </div>
 
@@ -79,21 +79,21 @@
 
           <button type="submit" class="login-btn" :disabled="loading || !phoneValid">
             <el-icon v-if="loading" class="loading-spin"><Loading /></el-icon>
-            <span>{{ loading ? '登录中...' : '登 录' }}</span>
+            <span>{{ loading ? $t('common.loginLoading') : $t('account.login') }}</span>
           </button>
         </form>
 
         <!-- 账号密码登录表单 -->
         <form v-else class="login-form" @submit.prevent="handleLogin">
           <div class="form-item">
-            <label class="form-label">用户名</label>
+            <label class="form-label">{{ $t('account.username') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><User /></el-icon>
               <input
                 v-model="accountForm.username"
                 type="text"
                 class="form-input"
-                placeholder="请输入用户名"
+                :placeholder="$t('common.usernamePlaceholder')"
                 autocomplete="username"
                 :disabled="loading"
               />
@@ -101,14 +101,14 @@
           </div>
 
           <div class="form-item">
-            <label class="form-label">密码</label>
+            <label class="form-label">{{ $t('account.password') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Lock /></el-icon>
               <input
                 v-model="accountForm.password"
                 :type="showPassword ? 'text' : 'password'"
                 class="form-input"
-                placeholder="请输入密码"
+                :placeholder="$t('common.passwordPlaceholder')"
                 autocomplete="current-password"
                 :disabled="loading"
                 @keyup.enter="handleLogin"
@@ -126,47 +126,45 @@
 
           <button type="submit" class="login-btn" :disabled="loading || !accountValid">
             <el-icon v-if="loading" class="loading-spin"><Loading /></el-icon>
-            <span>{{ loading ? '登录中...' : '登 录' }}</span>
+            <span>{{ loading ? $t('common.loginLoading') : $t('account.login') }}</span>
           </button>
         </form>
 
         <!-- 底部操作链接 -->
         <div class="login-links">
-          <router-link to="/register" class="link-item">注册账号</router-link>
-          <router-link to="/forgot-password" class="link-item">忘记密码？</router-link>
+          <router-link to="/register" class="link-item">{{ $t('account.register') }}</router-link>
+          <router-link to="/forgot-password" class="link-item">{{ $t('account.forgotPassword') }}</router-link>
         </div>
 
         <!-- 第三方登录 -->
         <div class="third-party-login">
           <div class="divider">
-            <span class="divider-text">其他方式登录</span>
+            <span class="divider-text">{{ $t('common.otherLogin') }}</span>
           </div>
           <div class="social-icons">
-            <button class="social-btn wechat" title="微信登录">
+            <button class="social-btn wechat" :title="$t('common.wechatLogin')">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.952-7.062-6.122zm-2.18 2.769c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982z"/></svg>
             </button>
-            <button class="social-btn alipay" title="支付宝登录">
+            <button class="social-btn alipay" :title="$t('common.alipayLogin')">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 7.5c-1.2 0-2.4.5-3.3 1.3-1.1-1.3-2.7-2.1-4.5-2.1-3.3 0-6 2.7-6 6s2.7 6 6 6c1.8 0 3.4-.8 4.5-2.1.9.8 2.1 1.3 3.3 1.3 2.8 0 5-2.2 5-5s-2.2-5-5-5zm0 8.5c-1.6 0-2.9-1.1-3.3-2.5h3.3v-1.5h-3.5c0-.3.1-.7.1-1h3.4V9.5H15c-.3-.9-1.1-1.5-2-1.5-1.2 0-2.2 1-2.2 2.2S11.8 13 13 13c.9 0 1.7-.6 2-1.4h1.2c-.2 1.6-1.2 2.9-2.5 2.9-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5c.7 0 1.4.3 1.8.8l1.1-.9c-.7-.8-1.7-1.3-2.9-1.3-2.2 0-4 1.8-4 4s1.8 4 4 4c1.5 0 2.9-.8 3.5-2h1.3c-.5 2.2-2.3 3.5-4.8 3.5-1.3 0-2.5-.3-3.5-.9l-.8 1.3c1 .6 2.1.9 3.3.9 3.1 0 5.8-2.5 5.8-5.8 0-1.9-1.5-3.5-3.5-3.5z"/></svg>
             </button>
-            <button class="social-btn google" title="Google 登录">
+            <button class="social-btn google" :title="$t('common.googleLogin')">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
             </button>
-            <button class="social-btn github" title="GitHub 登录">
+            <button class="social-btn github" :title="$t('common.githubLogin')">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12 24 5.373 18.627 0 12 0z"/></svg>
             </button>
           </div>
         </div>
 
         <div class="login-footer">
-          <span>登录即表示同意 <a href="#" class="link">服务协议</a> 和 <a href="#" class="link">隐私政策</a></span>
+          <span>{{ $t('account.agreement') }} <a href="#" class="link">{{ $t('account.serviceAgreement') }}</a> {{ $t('common.and') }} <a href="#" class="link">{{ $t('account.privacyPolicy') }}</a></span>
         </div>
       </div>
 
       <div class="theme-toggle-wrapper">
-        <button class="theme-btn" @click="toggleTheme">
-          <el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
-          <span>{{ isDark ? '浅色模式' : '深色模式' }}</span>
-        </button>
+        <LanguageSwitcher />
+        <ThemeToggle />
       </div>
     </div>
   </div>
@@ -175,15 +173,17 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { login } from '@/api/auth'
-import { useThemeStore } from '@/stores/theme'
-import { storeToRefs } from 'pinia'
+import { useUserStore } from '@/stores/user'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
-const themeStore = useThemeStore()
-const { isDark } = storeToRefs(themeStore)
+const userStore = useUserStore()
 
 const loginMode = ref('phone')
 const showPassword = ref(false)
@@ -200,13 +200,9 @@ const redirect = route.query.redirect || '/'
 const phoneValid = computed(() => /^1[3-9]\d{9}$/.test(phoneForm.value.phone) && phoneForm.value.code.length >= 4)
 const accountValid = computed(() => accountForm.value.username.trim() && accountForm.value.password.trim())
 
-function toggleTheme() {
-  themeStore.toggle()
-}
-
 function sendCode() {
   if (countdown.value > 0 || !phoneForm.value.phone) return
-  ElMessage.success('验证码已发送（演示：输入 1234）')
+  ElMessage.success(t('account.codeSent') + '（演示：输入 1234）')
   countdown.value = 60
   countdownTimer = setInterval(() => {
     countdown.value--
@@ -221,18 +217,17 @@ function handlePhoneLogin() {
   errorMsg.value = ''
   if (!phoneValid.value) return
   loading.value = true
-  // 手机验证码登录（后台逻辑暂不实现，使用账号密码登录接口占位）
   login('admin', 'admin123')
     .then(res => {
       if (res.code === 200 && res.data && res.data.token) {
-        localStorage.setItem('token', res.data.token)
-        ElMessage.success('登录成功')
+        userStore.onLogin(res.data.token, 'admin', t('account.loginSuccess'), '')
+        ElMessage.success(t('account.loginSuccess'))
         router.replace(redirect)
       } else {
-        errorMsg.value = res.msg || '登录失败'
+        errorMsg.value = res.msg || t('account.loginFailed')
       }
     })
-    .catch(() => { errorMsg.value = '网络连接失败，请稍后重试' })
+    .catch(() => { errorMsg.value = t('common.networkError') })
     .finally(() => { loading.value = false })
 }
 
@@ -241,17 +236,18 @@ function handleLogin() {
   if (!accountValid.value) return
 
   loading.value = true
-  login(accountForm.value.username.trim(), accountForm.value.password)
+  const username = accountForm.value.username.trim()
+  login(username, accountForm.value.password)
     .then(res => {
       if (res.code === 200 && res.data && res.data.token) {
-        localStorage.setItem('token', res.data.token)
-        ElMessage.success('登录成功')
+        userStore.onLogin(res.data.token, username, username, '')
+        ElMessage.success(t('account.loginSuccess'))
         router.replace(redirect)
       } else {
-        errorMsg.value = res.msg || '用户名或密码错误'
+        errorMsg.value = res.msg || t('account.loginFailed')
       }
     })
-    .catch(() => { errorMsg.value = '网络连接失败，请稍后重试' })
+    .catch(() => { errorMsg.value = t('common.networkError') })
     .finally(() => { loading.value = false })
 }
 </script>
@@ -494,7 +490,9 @@ function handleLogin() {
   border: 1px solid #fde2e2;
 }
 
-html.dark .form-error {
+html[data-theme="dark"] .form-error,
+html[data-theme="blue-pro"] .form-error,
+html[data-theme="purple"] .form-error {
   background: rgba(245, 108, 108, 0.1);
   border-color: rgba(245, 108, 108, 0.2);
 }
@@ -610,7 +608,9 @@ html.dark .form-error {
   }
 }
 
-html.dark .social-btn.github {
+html[data-theme="dark"] .social-btn.github,
+html[data-theme="blue-pro"] .social-btn.github,
+html[data-theme="purple"] .social-btn.github {
   color: #e6e6e6;
   &:hover { border-color: #e6e6e6; }
 }
@@ -629,6 +629,10 @@ html.dark .social-btn.github {
 }
 
 .theme-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   margin-top: 24px;
 }
 

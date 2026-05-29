@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-page" :class="{ dark: isDark }">
+  <div class="auth-page">
     <div class="auth-bg">
       <div class="bg-shapes">
         <div class="shape shape-1"></div>
@@ -14,32 +14,32 @@
           <router-link to="/login" class="back-btn">
             <el-icon><ArrowLeft /></el-icon>
           </router-link>
-          <h1 class="auth-title">注册账号</h1>
-          <p class="auth-subtitle">创建您的 Ds-Ai 账号</p>
+          <h1 class="auth-title">{{ $t('account.register') }}</h1>
+          <p class="auth-subtitle">{{ $t('account.createAccount') }}</p>
         </div>
 
         <form class="auth-form" @submit.prevent="handleRegister">
           <div class="form-item">
-            <label class="form-label">用户名</label>
+            <label class="form-label">{{ $t('account.username') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><User /></el-icon>
-              <input v-model="form.username" type="text" class="form-input" placeholder="请输入用户名" autocomplete="username" />
+              <input v-model="form.username" type="text" class="form-input" :placeholder="$t('common.usernamePlaceholder')" autocomplete="username" />
             </div>
           </div>
 
           <div class="form-item">
-            <label class="form-label">手机号</label>
+            <label class="form-label">{{ $t('account.phone') }}</label>
             <div class="input-wrapper">
               <span class="country-code">+86</span>
-              <input v-model="form.phone" type="tel" class="form-input has-prefix" placeholder="请输入手机号" maxlength="11" />
+              <input v-model="form.phone" type="tel" class="form-input has-prefix" :placeholder="$t('common.phonePlaceholder')" maxlength="11" />
             </div>
           </div>
 
           <div class="form-item">
-            <label class="form-label">密码</label>
+            <label class="form-label">{{ $t('account.password') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Lock /></el-icon>
-              <input v-model="form.password" :type="showPwd ? 'text' : 'password'" class="form-input" placeholder="请输入密码" />
+              <input v-model="form.password" :type="showPwd ? 'text' : 'password'" class="form-input" :placeholder="$t('common.passwordPlaceholder')" />
               <button type="button" class="toggle-pwd" @click="showPwd = !showPwd">
                 <el-icon><View v-if="!showPwd" /><Hide v-else /></el-icon>
               </button>
@@ -47,20 +47,20 @@
           </div>
 
           <div class="form-item">
-            <label class="form-label">确认密码</label>
+            <label class="form-label">{{ $t('account.confirmPassword') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Lock /></el-icon>
-              <input v-model="form.confirmPassword" :type="showPwd ? 'text' : 'password'" class="form-input" placeholder="请再次输入密码" />
+              <input v-model="form.confirmPassword" :type="showPwd ? 'text' : 'password'" class="form-input" :placeholder="$t('common.reEnterPwdPlaceholder')" />
             </div>
           </div>
 
           <div class="form-item">
-            <label class="form-label">验证码</label>
+            <label class="form-label">{{ $t('account.verificationCode') }}</label>
             <div class="input-wrapper">
               <el-icon class="input-icon"><Message /></el-icon>
-              <input v-model="form.code" type="text" class="form-input" placeholder="请输入验证码" maxlength="6" />
+              <input v-model="form.code" type="text" class="form-input" :placeholder="$t('common.codePlaceholder')" maxlength="6" />
               <button type="button" class="code-btn" :disabled="countdown > 0 || !form.phone" @click="sendCode">
-                {{ countdown > 0 ? countdown + 's' : '发送验证码' }}
+                {{ countdown > 0 ? countdown + 's' : $t('account.sendCode') }}
               </button>
             </div>
           </div>
@@ -71,21 +71,19 @@
           </div>
 
           <button type="submit" class="auth-btn" :disabled="!formValid">
-            <span>注 册</span>
+            <span>{{ $t('account.register') }}</span>
           </button>
         </form>
 
         <div class="auth-footer">
-          <span>已有账号？</span>
-          <router-link to="/login" class="link">去登录</router-link>
+          <span>{{ $t('account.haveAccount') }}</span>
+          <router-link to="/login" class="link">{{ $t('account.goLogin') }}</router-link>
         </div>
       </div>
 
       <div class="theme-toggle-wrapper">
-        <button class="theme-btn" @click="toggleTheme">
-          <el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
-          <span>{{ isDark ? '浅色模式' : '深色模式' }}</span>
-        </button>
+        <LanguageSwitcher />
+        <ThemeToggle />
       </div>
     </div>
   </div>
@@ -94,18 +92,20 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { useThemeStore } from '@/stores/theme'
-import { storeToRefs } from 'pinia'
+import { register, sendSmsCode } from '@/api/auth'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
+const { t } = useI18n()
 const router = useRouter()
-const themeStore = useThemeStore()
-const { isDark } = storeToRefs(themeStore)
 
 const form = ref({ username: '', phone: '', password: '', confirmPassword: '', code: '' })
 const showPwd = ref(false)
 const errorMsg = ref('')
 const countdown = ref(0)
+const submitting = ref(false)
 let countdownTimer = null
 
 const formValid = computed(() =>
@@ -116,28 +116,53 @@ const formValid = computed(() =>
   form.value.code.length >= 4
 )
 
-function toggleTheme() { themeStore.toggle() }
-
-function sendCode() {
+async function sendCode() {
   if (countdown.value > 0 || !form.value.phone) return
-  ElMessage.success('验证码已发送（演示：输入 1234）')
-  countdown.value = 60
-  countdownTimer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) { clearInterval(countdownTimer); countdownTimer = null }
-  }, 1000)
+  try {
+    const res = await sendSmsCode(form.value.phone)
+    if (res.code === 200) {
+      ElMessage.success(t('account.codeSent'))
+      countdown.value = 60
+      countdownTimer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) { clearInterval(countdownTimer); countdownTimer = null }
+      }, 1000)
+    } else {
+      ElMessage.error(res.msg || t('common.networkError'))
+    }
+  } catch (e) {
+    ElMessage.error(t('common.networkError'))
+  }
 }
 
-function handleRegister() {
+async function handleRegister() {
   errorMsg.value = ''
   if (!formValid.value) {
     if (form.value.password !== form.value.confirmPassword) {
-      errorMsg.value = '两次密码输入不一致'; return
+      errorMsg.value = t('common.passwordMismatch'); return
     }
-    errorMsg.value = '请填写完整信息'; return
+    errorMsg.value = t('common.completeInfo'); return
   }
-  ElMessage.info('注册功能后台暂未实现，请使用已有账号登录')
-  router.push('/login')
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    const res = await register({
+      username: form.value.username.trim(),
+      password: form.value.password,
+      phone: form.value.phone,
+      code: form.value.code
+    })
+    if (res.code === 200) {
+      ElMessage.success(t('account.registerSuccess'))
+      router.push('/login')
+    } else {
+      errorMsg.value = res.msg || t('account.registerFailed')
+    }
+  } catch (e) {
+    errorMsg.value = t('common.networkError')
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -337,7 +362,9 @@ function handleRegister() {
   border: 1px solid #fde2e2;
 }
 
-html.dark .form-error {
+html[data-theme="dark"] .form-error,
+html[data-theme="blue-pro"] .form-error,
+html[data-theme="purple"] .form-error {
   background: rgba(245, 108, 108, 0.1);
   border-color: rgba(245, 108, 108, 0.2);
 }
@@ -375,7 +402,7 @@ html.dark .form-error {
   }
 }
 
-.theme-toggle-wrapper { margin-top: 24px; }
+.theme-toggle-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
 
 .theme-btn {
   display: flex;

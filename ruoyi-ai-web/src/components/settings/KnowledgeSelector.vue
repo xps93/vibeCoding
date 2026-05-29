@@ -1,14 +1,14 @@
 <template>
   <div class="setting-block">
     <div class="setting-label">
-      知识库
-      <span v-if="selectedCount > 0" class="selected-count">已选{{ selectedCount }}个</span>
+      {{ $t('settings.knowledgeBase') }}
+      <span v-if="selectedCount > 0" class="selected-count">{{ $t('settings.selectedCount', { count: selectedCount }) }}</span>
     </div>
     <el-select
       :model-value="knowledgeStore.selectedIds"
       @update:model-value="onChange"
       multiple
-      placeholder="选择知识库"
+      :placeholder="$t('settings.selectKnowledgeBase')"
       size="default"
       style="width: 100%"
       :loading="knowledgeStore.loading"
@@ -32,7 +32,7 @@
       </el-tag>
     </div>
     <div v-if="knowledgeStore.items.length === 0 && !knowledgeStore.loading" class="empty-hint">
-      暂无可用知识库
+      {{ $t('settings.noKnowledgeBase') }}
     </div>
   </div>
 </template>
