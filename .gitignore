@@ -55,3 +55,15 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# ======================
+# 个人文件（不入库）
+# ======================
+CLAUDE.md
+CLAUDE - 副本.md
+test.md
+test.json
+start-all.sh
+start-services.bat
+stop-all.sh
+项目技术文档.md
