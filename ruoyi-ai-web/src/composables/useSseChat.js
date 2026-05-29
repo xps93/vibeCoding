@@ -54,7 +54,8 @@ export function useSseChat() {
         temperature: configStore.temperature,
         maxTokens: configStore.maxTokens,
         systemPrompt: configStore.systemPrompt,
-        webSearch: chatStore.webSearchEnabled
+        webSearch: chatStore.webSearchEnabled,
+        ragEnabled: chatStore.ragEnabled
       }, abortCtrl.signal)
 
       if (!response.ok) {
@@ -115,7 +116,8 @@ export function useSseChat() {
         temperature: configStore.temperature,
         maxTokens: configStore.maxTokens,
         systemPrompt: configStore.systemPrompt,
-        webSearch: chatStore.webSearchEnabled
+        webSearch: chatStore.webSearchEnabled,
+        ragEnabled: chatStore.ragEnabled
       }, abortCtrl.signal)
 
       if (!response.ok) {

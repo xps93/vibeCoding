@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.DatasetMapper">
+
+    <resultMap id="datasetMap" type="com.example.admin.entity.Dataset">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileType" column="file_type"/>
+        <result property="columnHeaders" column="column_headers"/>
+        <result property="rowCount" column="row_count"/>
+        <result property="userId" column="user_id"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <resultMap id="rowMap" type="com.example.admin.entity.DatasetRow">
+        <id property="id" column="id"/>
+        <result property="datasetId" column="dataset_id"/>
+        <result property="rowIndex" column="row_index"/>
+        <result property="rowData" column="row_data"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_dataset(name, description, file_name, file_type, column_headers, row_count, user_id, status, create_time)
+        VALUES(#{name}, #{description}, #{fileName}, #{fileType}, #{columnHeaders}, #{rowCount}, #{userId}, 0, NOW())
+    </insert>
+
+    <select id="selectByUserId" resultMap="datasetMap">
+        SELECT * FROM t_dataset WHERE user_id = #{userId} AND status = 0 ORDER BY create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="datasetMap">
+        SELECT * FROM t_dataset WHERE id = #{id} AND status = 0
+    </select>
+
+    <select id="selectByIdAndUserId" resultMap="datasetMap">
+        SELECT * FROM t_dataset WHERE id = #{id} AND user_id = #{userId} AND status = 0
+    </select>
+
+    <update id="deleteById">
+        UPDATE t_dataset SET status = 1 WHERE id = #{id}
+    </update>
+
+    <insert id="insertRow" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_dataset_row(dataset_id, row_index, row_data) VALUES(#{datasetId}, #{rowIndex}, #{rowData})
+    </insert>
+
+    <insert id="insertRows">
+        INSERT INTO t_dataset_row(dataset_id, row_index, row_data) VALUES
+        <foreach collection="rows" item="row" separator=",">
+            (#{row.datasetId}, #{row.rowIndex}, #{row.rowData})
+        </foreach>
+    </insert>
+
+    <select id="selectRowsByDatasetId" resultMap="rowMap">
+        SELECT * FROM t_dataset_row WHERE dataset_id = #{datasetId} ORDER BY row_index
+    </select>
+
+    <delete id="deleteRowsByDatasetId">
+        DELETE FROM t_dataset_row WHERE dataset_id = #{datasetId}
+    </delete>
+
+    <select id="countRowsByDatasetId" resultType="int">
+        SELECT COUNT(*) FROM t_dataset_row WHERE dataset_id = #{datasetId}
+    </select>
+
+</mapper>

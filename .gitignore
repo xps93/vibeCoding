@@ -16,6 +16,17 @@ spring-boot-admin/logs/
 .claude
 .idea
 # ======================
+# 前端 ruoyi-ai-web
+# ======================
+ruoyi-ai-web/.idea/
+ruoyi-ai-web/node_modules/
+ruoyi-ai-web/dist/
+ruoyi-ai-web/build/
+ruoyi-ai-web/uploads/
+ruoyi-ai-web/*.log
+ruoyi-ai-web/.env.local
+
+# ======================
 # 前端 vue-admin
 # ======================
 vue-admin/.idea/
@@ -29,8 +40,16 @@ vue-admin/vite.log
 vue-admin/.env.local
 
 # ======================
+# 后端运行时目录
+# ======================
+spring-boot-admin/data/
+spring-boot-admin/uploads/
+spring-boot-admin/logs/
+
+# ======================
 # 通用文件
 # ======================
+dump.rdb
 .DS_Store
 Thumbs.db
 *.swp

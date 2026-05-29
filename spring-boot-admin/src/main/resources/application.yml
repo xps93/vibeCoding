@@ -1,7 +1,9 @@
 server:
-  port: 8089
+  port: 8090
 
 spring:
+  profiles:
+    active: dev
   servlet:
     multipart:
       enabled: true
@@ -31,6 +33,23 @@ spring:
         max-idle: 8
         min-idle: 4
         max-wait: 3000ms
+  # ==================== Spring AI 向量存储配置 ====================
+  ai:
+    vectorstore:
+      # dev 环境：SimpleVectorStore（内存 + JSON 文件持久化）
+      simple:
+        store-file: ./data/property-vectors.json
+      # prod 环境：PgVectorStore（预留，未来切换时取消注释）
+      # pgvector:
+      #   host: localhost
+      #   port: 5432
+      #   database: property_rag
+      #   username: postgres
+      #   password: ${PGVECTOR_PASSWORD:}
+      #   table-name: vector_store
+      #   index-type: HNSW
+      #   distance-type: COSINE_DISTANCE
+      #   dimensions: 1536
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

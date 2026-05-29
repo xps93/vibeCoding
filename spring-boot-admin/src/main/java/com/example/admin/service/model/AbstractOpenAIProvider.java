@@ -1,5 +1,7 @@
 package com.example.admin.service.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import okio.BufferedSource;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ public abstract class AbstractOpenAIProvider implements ModelProvider {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected final OkHttpClient httpClient;
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
     public AbstractOpenAIProvider() {
         this.httpClient = new OkHttpClient.Builder()
@@ -35,28 +38,13 @@ public abstract class AbstractOpenAIProvider implements ModelProvider {
     public void streamChat(List<Map<String, String>> messages, String model,
                            Double temperature, Integer maxTokens,
                            StreamCallback callback) {
-        double temp = temperature != null ? temperature : 0.7;
-        int tokens = maxTokens != null ? maxTokens : 2048;
-
-        StringBuilder json = new StringBuilder();
-        json.append("{\"model\":\"").append(model).append("\"");
-        json.append(",\"messages\":[");
-        for (int i = 0; i < messages.size(); i++) {
-            Map<String, String> msg = messages.get(i);
-            if (i > 0) json.append(",");
-            json.append("{\"role\":\"").append(msg.get("role"))
-                .append("\",\"content\":\"").append(escapeJson(msg.get("content"))).append("\"}");
-        }
-        json.append("],\"stream\":true");
-        json.append(",\"temperature\":").append(temp);
-        json.append(",\"max_tokens\":").append(tokens);
-        json.append("}");
+        String jsonBody = buildRequestBody(messages, model, temperature, maxTokens, true);
 
         Request request = new Request.Builder()
                 .url(getBaseUrl() + "/v1/chat/completions")
                 .header("Authorization", "Bearer " + getApiKey())
                 .header("Content-Type", "application/json")
-                .post(RequestBody.create(json.toString(), JSON))
+                .post(RequestBody.create(jsonBody, JSON))
                 .build();
 
         try {
@@ -78,6 +66,88 @@ public abstract class AbstractOpenAIProvider implements ModelProvider {
         } catch (IOException e) {
             log.error("{} API 请求异常", getProviderName(), e);
             callback.onError("网络请求失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String chatSync(List<Map<String, String>> messages, String model,
+                           Double temperature, Integer maxTokens) {
+        String jsonBody = buildRequestBody(messages, model, temperature, maxTokens, false);
+
+        Request request = new Request.Builder()
+                .url(getBaseUrl() + "/v1/chat/completions")
+                .header("Authorization", "Bearer " + getApiKey())
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(jsonBody, JSON))
+                .build();
+
+        try {
+            Response response = httpClient.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                String errorBody = response.body() != null ? response.body().string() : "";
+                log.error("{} sync API error: {} {}", getProviderName(), response.code(), errorBody);
+                throw new RuntimeException(getProviderName() + " API返回错误: " + response.code());
+            }
+
+            ResponseBody body = response.body();
+            if (body == null) {
+                throw new RuntimeException("响应体为空");
+            }
+
+            String respBody = body.string();
+            return extractMessageContent(respBody);
+        } catch (IOException e) {
+            log.error("{} sync API 请求异常", getProviderName(), e);
+            throw new RuntimeException("同步调用失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 构建 OpenAI 兼容的请求体 JSON。
+     */
+    protected String buildRequestBody(List<Map<String, String>> messages, String model,
+                                      Double temperature, Integer maxTokens, boolean stream) {
+        double temp = temperature != null ? temperature : 0.7;
+        int tokens = maxTokens != null ? maxTokens : 2048;
+
+        StringBuilder json = new StringBuilder();
+        json.append("{\"model\":\"").append(model).append("\"");
+        json.append(",\"messages\":[");
+        for (int i = 0; i < messages.size(); i++) {
+            Map<String, String> msg = messages.get(i);
+            if (i > 0) json.append(",");
+            json.append("{\"role\":\"").append(msg.get("role"))
+                .append("\",\"content\":\"").append(escapeJson(msg.get("content"))).append("\"}");
+        }
+        json.append("],\"stream\":").append(stream);
+        json.append(",\"temperature\":").append(temp);
+        json.append(",\"max_tokens\":").append(tokens);
+        json.append("}");
+
+        return json.toString();
+    }
+
+    /**
+     * 从非流式响应中提取 choices[0].message.content，使用 Jackson 正确解析 JSON。
+     */
+    protected String extractMessageContent(String respBody) {
+        try {
+            JsonNode root = objectMapper.readTree(respBody);
+            JsonNode choices = root.get("choices");
+            if (choices == null || !choices.isArray() || choices.size() == 0) {
+                throw new RuntimeException("响应中无choices字段: " + respBody);
+            }
+            JsonNode message = choices.get(0).get("message");
+            if (message == null) {
+                throw new RuntimeException("响应中无message字段");
+            }
+            JsonNode content = message.get("content");
+            if (content == null) {
+                return "";
+            }
+            return content.asText();
+        } catch (IOException e) {
+            throw new RuntimeException("解析响应JSON失败: " + e.getMessage(), e);
         }
     }
 

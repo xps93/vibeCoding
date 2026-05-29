@@ -35,13 +35,80 @@
         type="textarea"
         :rows="1"
         :autosize="{ minRows: 1, maxRows: 6 }"
-        :placeholder="attachedFile ? $t('chat.docPlaceholder') : $t('chat.placeholder')"
+        :placeholder="inputPlaceholder"
         :disabled="isStreaming"
         resize="none"
         @keydown.enter.exact.prevent="handleSend"
         @paste="onPaste"
       />
       <div class="input-actions">
+        <!-- 本地数据集模式 -->
+        <el-popover
+          placement="top"
+          :width="280"
+          trigger="click"
+          :visible="datasetPopoverVisible"
+          @update:visible="onPopoverVisibleChange"
+        >
+          <template #reference>
+            <el-tooltip content="本地数据集查询" placement="top">
+              <button
+                class="action-icon-btn"
+                :class="{ active: datasetStore.datasetMode }"
+                :disabled="isStreaming"
+                @click="toggleDatasetMode"
+              >
+                <el-icon :size="18"><Coin /></el-icon>
+              </button>
+            </el-tooltip>
+          </template>
+          <div class="dataset-popover">
+            <div class="popover-header">
+              <span>本地数据集</span>
+              <button class="popover-upload-btn" @click="triggerDatasetUpload">
+                <el-icon :size="14"><UploadFilled /></el-icon>
+                上传
+              </button>
+            </div>
+            <input
+              ref="datasetFileInput"
+              type="file"
+              accept=".csv,.json,.xlsx,.xls"
+              style="display:none"
+              @change="handleDatasetFileChange"
+            />
+            <div class="popover-list" v-if="datasetStore.items.length > 0">
+              <div
+                v-for="item in datasetStore.items"
+                :key="item.id"
+                class="popover-item"
+                :class="{ active: datasetStore.selectedDatasetId === item.id }"
+                @click="datasetStore.selectDataset(item.id)"
+              >
+                <el-icon :size="14"><FolderOpened /></el-icon>
+                <div class="item-info">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-meta">{{ item.rowCount }}行 · {{ item.fileType.toUpperCase() }}</span>
+                </div>
+                <el-icon v-if="datasetStore.selectedDatasetId === item.id" :size="14" class="check-icon"><Check /></el-icon>
+              </div>
+            </div>
+            <div class="popover-empty" v-else>
+              <p>暂无数据集，请上传CSV/JSON/Excel文件</p>
+            </div>
+          </div>
+        </el-popover>
+        <!-- RAG房产检索开关 -->
+        <el-tooltip content="房产RAG检索" placement="top">
+          <button
+            class="action-icon-btn"
+            :class="{ active: chatStore.ragEnabled }"
+            :disabled="isStreaming"
+            @click="chatStore.toggleRag()"
+          >
+            <el-icon :size="18"><HomeFilled /></el-icon>
+          </button>
+        </el-tooltip>
         <!-- 联网搜索开关 -->
         <el-tooltip :content="$t('chat.webSearch')" placement="top">
           <button
@@ -93,14 +160,16 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { VideoPause, Promotion, UploadFilled, Document, Loading, Close, Search } from '@element-plus/icons-vue'
+import { VideoPause, Promotion, UploadFilled, Document, Loading, Close, Search, Coin, FolderOpened, Check, HomeFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/stores/chat'
+import { useDatasetStore } from '@/stores/dataset'
 import { estimateTokens } from '@/utils/format'
 import { uploadDocument } from '@/api/document'
 
 const { t } = useI18n()
 const chatStore = useChatStore()
+const datasetStore = useDatasetStore()
 
 const props = defineProps({
   isStreaming: { type: Boolean, default: false }
@@ -111,15 +180,26 @@ const emit = defineEmits(['send', 'stop'])
 const inputText = ref('')
 const inputRef = ref(null)
 const fileInputRef = ref(null)
+const datasetFileInput = ref(null)
 
 const attachedFile = ref(null)
 const parsedContent = ref('')
 const documentId = ref(null)
 const parsing = ref(false)
 const isDragging = ref(false)
+const datasetPopoverVisible = ref(false)
 let dragEnterCount = 0
 
 const estimatedTokens = computed(() => estimateTokens(inputText.value))
+
+const inputPlaceholder = computed(() => {
+  if (attachedFile.value) return t('chat.docPlaceholder')
+  if (datasetStore.datasetMode && datasetStore.selectedDatasetId) {
+    const ds = datasetStore.items.find(i => i.id === datasetStore.selectedDatasetId)
+    return ds ? `查询数据集"${ds.name}"... 输入筛选条件` : t('chat.placeholder')
+  }
+  return t('chat.placeholder')
+})
 
 function triggerUpload() {
   fileInputRef.value?.click()
@@ -224,9 +304,62 @@ function handleSend() {
 
   const docId = documentId.value
 
-  emit('send', { content: text || t('chat.docSummaryPrompt'), documentId: docId, attachmentName: attachedFile.value?.name || null })
+  if (datasetStore.datasetMode && datasetStore.selectedDatasetId) {
+    emit('send', {
+      content: text || t('chat.docSummaryPrompt'),
+      documentId: docId,
+      attachmentName: attachedFile.value?.name || null,
+      datasetQuery: true,
+      datasetId: datasetStore.selectedDatasetId
+    })
+  } else {
+    emit('send', {
+      content: text || t('chat.docSummaryPrompt'),
+      documentId: docId,
+      attachmentName: attachedFile.value?.name || null
+    })
+  }
   inputText.value = ''
   removeFile()
+}
+
+// ──────────────── 数据集 ────────────────
+
+function toggleDatasetMode() {
+  datasetStore.toggleMode()
+  if (datasetStore.datasetMode) {
+    if (datasetStore.items.length === 0) {
+      datasetStore.fetchDatasets()
+    }
+    datasetPopoverVisible.value = true
+  } else {
+    datasetPopoverVisible.value = false
+    datasetStore.selectedDatasetId = null
+  }
+}
+
+function onPopoverVisibleChange(visible) {
+  datasetPopoverVisible.value = visible
+  if (visible && datasetStore.items.length === 0) {
+    datasetStore.fetchDatasets()
+  }
+}
+
+function triggerDatasetUpload() {
+  datasetFileInput.value?.click()
+}
+
+async function handleDatasetFileChange(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  try {
+    await datasetStore.upload(file)
+  } catch (err) {
+    ElMessage.error('数据集上传失败: ' + (err.message || '未知错误'))
+  }
+  if (datasetFileInput.value) {
+    datasetFileInput.value.value = ''
+  }
 }
 
 function focus() {
@@ -405,6 +538,67 @@ defineExpose({ focus })
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+}
+
+/* ──────────────── 数据集弹出层 ──────────────── */
+
+.dataset-popover {
+  .popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .popover-upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--accent-color);
+    background: var(--accent-light);
+    color: var(--accent-color);
+    font-size: 12px;
+    cursor: pointer;
+    &:hover { background: var(--accent-color); color: #fff; }
+  }
+
+  .popover-list {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .popover-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: var(--bg-secondary); }
+    &.active { background: var(--accent-light); }
+
+    .item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      .item-name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+      .item-meta { font-size: 11px; color: var(--text-tertiary); }
+    }
+    .check-icon { color: var(--accent-color); }
+  }
+
+  .popover-empty {
+    text-align: center;
+    padding: 16px 0;
+    p { font-size: 13px; color: var(--text-tertiary); }
   }
 }
 </style>

@@ -114,6 +114,8 @@ import { useAutoScroll } from '@/composables/useAutoScroll'
 import { useMobile } from '@/composables/useMobile'
 import { useExport } from '@/composables/useExport'
 import { createShare } from '@/api/chat'
+import { queryDataset } from '@/api/dataset'
+import { useDatasetStore } from '@/stores/dataset'
 import HeaderToolbar from '@/components/common/HeaderToolbar.vue'
 import EmptyState from './EmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
@@ -126,6 +128,7 @@ const chatStore = useChatStore()
 const conversationStore = useConversationStore()
 const assistantStore = useAssistantStore()
 const configStore = useConfigStore()
+const datasetStore = useDatasetStore()
 const { error: chatError } = storeToRefs(chatStore)
 const { showLeftSidebar, showRightPanel } = useMobile()
 const { send, reGen, stop } = useSseChat()
@@ -229,10 +232,68 @@ async function handleSend(payload) {
   if (typeof payload === 'string') {
     lastUserMessage.value = payload
     await send(payload)
+  } else if (payload.datasetQuery) {
+    // 本地数据集查询模式
+    await handleDatasetQuery(payload)
   } else {
     lastUserMessage.value = payload.content
     await send(payload.content, payload.documentId, payload.attachmentName)
   }
+}
+
+async function handleDatasetQuery(payload) {
+  if (!payload.content || !payload.datasetId) return
+  if (chatStore.isStreaming) return
+
+  if (!conversationStore.activeId) {
+    await conversationStore.create()
+    if (!conversationStore.activeId) return
+  }
+
+  const queryText = payload.content.trim()
+  chatStore.addMessage({ role: 'user', content: queryText })
+
+  try {
+    const data = await queryDataset(payload.datasetId, queryText)
+    const resultMsg = formatDatasetResult(data, queryText)
+    chatStore.addMessage({ role: 'assistant', content: resultMsg })
+  } catch (e) {
+    chatStore.addMessage({
+      role: 'assistant',
+      content: '数据集查询失败: ' + (e.message || '网络错误')
+    })
+  }
+}
+
+function formatDatasetResult(data, query) {
+  if (!data || !data.rows || data.rows.length === 0) {
+    return `**数据集"${data?.datasetName || '未知'}"查询结果**\n\n未找到与"${query}"匹配的数据。`
+  }
+
+  const columns = data.columns || []
+  let markdown = `**数据集"${data.datasetName}"查询结果**\n\n`
+  markdown += `查询: "${query}" | 匹配 ${data.matchCount} 条 / 共 ${data.totalRows} 条 | 显示前 ${data.rows.length} 条\n\n`
+
+  // 构建表格
+  if (columns.length > 0) {
+    // 表头
+    markdown += '| ' + columns.join(' | ') + ' |\n'
+    markdown += '| ' + columns.map(() => '---').join(' | ') + ' |\n'
+    // 数据行
+    for (const row of data.rows) {
+      const cells = columns.map(col => {
+        const val = row[col]
+        return val !== null && val !== undefined ? String(val) : ''
+      })
+      markdown += '| ' + cells.join(' | ') + ' |\n'
+    }
+  } else {
+    for (const row of data.rows) {
+      markdown += '- ' + JSON.stringify(row) + '\n'
+    }
+  }
+
+  return markdown
 }
 
 async function handleStop() {

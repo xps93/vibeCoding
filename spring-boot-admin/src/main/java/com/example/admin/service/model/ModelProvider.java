@@ -16,6 +16,21 @@ public interface ModelProvider {
                     StreamCallback callback);
 
     /**
+     * 同步聊天（非流式），直接返回完整回复文本。
+     * 用于查询分析等不需要流式输出的场景。
+     *
+     * @param messages    消息列表
+     * @param model       模型名称
+     * @param temperature 温度参数，null 则使用默认值
+     * @param maxTokens   最大 token 数，null 则使用默认值
+     * @return 完整的回复文本
+     */
+    default String chatSync(List<Map<String, String>> messages, String model,
+                            Double temperature, Integer maxTokens) {
+        throw new UnsupportedOperationException("同步调用未实现: " + getProviderName());
+    }
+
+    /**
      * 获取模型提供商标识
      */
     String getProviderName();

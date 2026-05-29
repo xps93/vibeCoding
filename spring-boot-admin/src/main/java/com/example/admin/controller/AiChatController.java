@@ -45,9 +45,10 @@ public class AiChatController {
         Integer maxTokens = toInt(body.get("maxTokens"), 2048);
         String systemPrompt = toString(body.get("systemPrompt"));
         Boolean webSearch = Boolean.TRUE.equals(body.get("webSearch"));
-
+        Boolean ragEnabled = Boolean.TRUE.equals(body.get("ragEnabled"));
+        // 校验冗余，造轮子，方法传参数太多，需要遵守单一职责
         return aiChatService.chat(user, conversationId, content, documentId, modelId,
-                knowledgeBaseIds, temperature, maxTokens, systemPrompt, webSearch);
+                knowledgeBaseIds, temperature, maxTokens, systemPrompt, webSearch, ragEnabled);
     }
 
     /** 重新生成：删除最后一条AI回复，重新发起请求 */
@@ -94,9 +95,10 @@ public class AiChatController {
         Integer maxTokens = toInt(body.get("maxTokens"), 2048);
         String systemPrompt = toString(body.get("systemPrompt"));
         Boolean webSearch = Boolean.TRUE.equals(body.get("webSearch"));
+        Boolean ragEnabled = Boolean.TRUE.equals(body.get("ragEnabled"));
 
         return aiChatService.chat(user, conversationId, content, null, modelId,
-                null, temperature, maxTokens, systemPrompt, webSearch);
+                null, temperature, maxTokens, systemPrompt, webSearch, ragEnabled);
     }
 
     /** 停止生成 */

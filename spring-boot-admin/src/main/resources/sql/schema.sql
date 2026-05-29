@@ -288,6 +288,32 @@ INSERT INTO ai_model(id, name, provider, capabilities, status) VALUES
 (1, 'DeepSeek V4 Pro', 'DeepSeek', 'chat,code,reasoning', 0),
 (2, 'DeepSeek V4 Flash', 'DeepSeek', 'chat', 0);
 
+-- 数据集表
+DROP TABLE IF EXISTS t_dataset_row;
+DROP TABLE IF EXISTS t_dataset;
+CREATE TABLE t_dataset (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  description VARCHAR(500) DEFAULT '',
+  file_name VARCHAR(200) NOT NULL,
+  file_type VARCHAR(20) DEFAULT '' COMMENT 'csv/json/xlsx',
+  column_headers TEXT COMMENT '列头JSON数组',
+  row_count INT DEFAULT 0,
+  user_id BIGINT NOT NULL,
+  status INT DEFAULT 0 COMMENT '0=正常 1=删除',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_dataset_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 数据集行表
+CREATE TABLE t_dataset_row (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  dataset_id BIGINT NOT NULL,
+  row_index INT DEFAULT 0,
+  row_data TEXT COMMENT '行数据JSON',
+  INDEX idx_dr_dataset (dataset_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- AI知识库初始数据
 INSERT INTO ai_knowledge_base(id, name, description, status) VALUES
 (1, '通用知识库', '默认通用知识库', 0);

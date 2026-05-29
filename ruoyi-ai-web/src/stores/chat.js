@@ -151,8 +151,14 @@ export const useChatStore = defineStore('chat', () => {
     } catch (e) { /* ignore */ }
   }
 
+  const ragEnabled = ref(false)
+
   function toggleWebSearch() {
     webSearchEnabled.value = !webSearchEnabled.value
+  }
+
+  function toggleRag() {
+    ragEnabled.value = !ragEnabled.value
   }
 
   return {
@@ -163,6 +169,7 @@ export const useChatStore = defineStore('chat', () => {
     error,
     abortController,
     webSearchEnabled,
+    ragEnabled,
     messageRatings,
     allMessages,
     hasMessages,
@@ -181,6 +188,7 @@ export const useChatStore = defineStore('chat', () => {
     setMessageRating,
     clearMessageRating,
     loadRatings,
-    toggleWebSearch
+    toggleWebSearch,
+    toggleRag
   }
 })

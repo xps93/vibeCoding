@@ -1,0 +1,58 @@
+/* 代码高亮暗色主题覆盖（github.css 为基础，暗色主题下调整关键色值） */
+html[data-theme="dark"],
+html[data-theme="blue-pro"],
+html[data-theme="purple"] {
+  .hljs {
+    color: #c9d1d9;
+    background: var(--bg-code);
+  }
+  .hljs-comment,
+  .hljs-quote {
+    color: #8b949e;
+  }
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-type {
+    color: #ff7b72;
+  }
+  .hljs-string,
+  .hljs-addition {
+    color: #a5d6ff;
+  }
+  .hljs-number,
+  .hljs-literal {
+    color: #79c0ff;
+  }
+  .hljs-title,
+  .hljs-section,
+  .hljs-selector-id {
+    color: #d2a8ff;
+  }
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-variable,
+  .hljs-template-variable {
+    color: #ffa657;
+  }
+  .hljs-built_in,
+  .hljs-name {
+    color: #ffa657;
+  }
+  .hljs-meta {
+    color: #8b949e;
+  }
+  .hljs-link {
+    color: #58a6ff;
+    text-decoration: underline;
+  }
+  .hljs-deletion {
+    color: #ff7b72;
+    background: #490202;
+  }
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  .hljs-strong {
+    font-weight: bold;
+  }
+}
