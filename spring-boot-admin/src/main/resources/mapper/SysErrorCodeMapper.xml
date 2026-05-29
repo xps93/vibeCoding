@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.SysErrorCodeMapper">
+
+    <resultMap id="errorCodeMap" type="com.example.admin.entity.SysErrorCode">
+        <id property="code" column="code"/>
+        <result property="zhMsg" column="zh_msg"/>
+        <result property="enMsg" column="en_msg"/>
+        <result property="module" column="module"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="errorCodeMap">
+        SELECT code, zh_msg, en_msg, module, create_time FROM sys_error_code ORDER BY code ASC
+    </select>
+
+    <select id="selectByCode" resultMap="errorCodeMap">
+        SELECT code, zh_msg, en_msg, module, create_time FROM sys_error_code WHERE code = #{code}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO sys_error_code(code, zh_msg, en_msg, module, create_time)
+        VALUES(#{code}, #{zhMsg}, #{enMsg}, #{module}, #{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_error_code SET zh_msg = #{zhMsg}, en_msg = #{enMsg}, module = #{module}
+        WHERE code = #{code}
+    </update>
+
+    <delete id="deleteByCode">
+        DELETE FROM sys_error_code WHERE code = #{code}
+    </delete>
+
+</mapper>

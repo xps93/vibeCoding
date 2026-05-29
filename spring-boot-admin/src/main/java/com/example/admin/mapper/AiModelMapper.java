@@ -10,5 +10,13 @@ public interface AiModelMapper {
 
     List<AiModel> selectAll();
 
+    List<AiModel> selectAllWithDisabled();
+
     AiModel selectById(Long id);
+
+    int insert(AiModel model);
+
+    int update(AiModel model);
+
+    int deleteById(Long id);
 }

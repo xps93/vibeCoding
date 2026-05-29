@@ -17,6 +17,8 @@ public class DataStore {
     public final Map<String, Long> tokenMap = new ConcurrentHashMap<>();
     /** userId -> token列表 映射 */
     public final Map<Long, List<String>> userTokens = new ConcurrentHashMap<>();
+    /** phone -> 验证码 映射 */
+    public final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
     /**
      * 构建菜单树

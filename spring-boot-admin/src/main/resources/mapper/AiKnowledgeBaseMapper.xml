@@ -14,4 +14,27 @@
         SELECT * FROM ai_knowledge_base WHERE status = 0 ORDER BY id
     </select>
 
+    <select id="selectById" resultMap="kbMap">
+        SELECT * FROM ai_knowledge_base WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_knowledge_base(name, description, status, create_time)
+        VALUES(#{name}, #{description}, #{status}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE ai_knowledge_base
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_knowledge_base WHERE id = #{id}
+    </delete>
+
 </mapper>

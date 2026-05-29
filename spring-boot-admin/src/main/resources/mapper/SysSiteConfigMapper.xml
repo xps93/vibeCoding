@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.SysSiteConfigMapper">
+
+    <resultMap id="configMap" type="com.example.admin.entity.SysSiteConfig">
+        <id property="id" column="id"/>
+        <result property="configKey" column="config_key"/>
+        <result property="configValue" column="config_value"/>
+        <result property="configName" column="config_name"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="configMap">
+        SELECT * FROM sys_site_config ORDER BY id
+    </select>
+
+    <select id="selectByKey" resultMap="configMap">
+        SELECT * FROM sys_site_config WHERE config_key = #{configKey}
+    </select>
+
+    <select id="selectById" resultMap="configMap">
+        SELECT * FROM sys_site_config WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_site_config(config_key, config_value, config_name, remark, create_time, update_time)
+        VALUES(#{configKey}, #{configValue}, #{configName}, #{remark}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE sys_site_config SET config_value = #{configValue}, config_name = #{configName},
+        remark = #{remark}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>

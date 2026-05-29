@@ -74,4 +74,8 @@
         UPDATE sys_user SET password = #{password} WHERE id = #{id}
     </update>
 
+    <select id="selectByPhone" resultMap="userMap">
+        SELECT * FROM sys_user WHERE phone = #{phone}
+    </select>
+
 </mapper>

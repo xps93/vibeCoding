@@ -1,5 +1,6 @@
 package com.example.admin.config;
 
+import com.example.admin.service.ErrorCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,9 @@ public class SecurityConfig {
     @Autowired
     private LoginRateLimitFilter loginRateLimitFilter;
 
+    @Autowired
+    private ErrorCodeService errorCodeService;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -33,7 +37,9 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-            .antMatchers("/api/login").permitAll()
+            .antMatchers("/api/login", "/api/register", "/api/send-code", "/api/verify-identity", "/api/reset-password").permitAll()
+            .antMatchers("/api/ai/models", "/api/ai/knowledge-bases", "/api/ai/assistants", "/api/ai/share/**").permitAll()
+            .antMatchers("/api/site/**").permitAll()
             .antMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
             .antMatchers("/doc.html").permitAll()
             .antMatchers("/actuator/**").permitAll()
@@ -45,12 +51,27 @@ public class SecurityConfig {
             .exceptionHandling()
                 .authenticationEntryPoint((req, resp, e) -> {
                     resp.setContentType("application/json;charset=utf-8");
-                    resp.getWriter().write("{\"code\":401,\"msg\":\"未登录或token已过期\"}");
+                    String lang = resolveLang(req.getHeader("Accept-Language"), req.getParameter("lang"));
+                    String msg = errorCodeService.getMessage(GlobalExceptionHandler.ERR_UNAUTHORIZED, lang);
+                    resp.getWriter().write("{\"code\":" + GlobalExceptionHandler.ERR_UNAUTHORIZED + ",\"msg\":\"" + msg + "\"}");
                 })
                 .accessDeniedHandler((req, resp, e) -> {
                     resp.setContentType("application/json;charset=utf-8");
-                    resp.getWriter().write("{\"code\":403,\"msg\":\"权限不足\"}");
+                    String lang = resolveLang(req.getHeader("Accept-Language"), req.getParameter("lang"));
+                    String msg = errorCodeService.getMessage(GlobalExceptionHandler.ERR_FORBIDDEN, lang);
+                    resp.getWriter().write("{\"code\":" + GlobalExceptionHandler.ERR_FORBIDDEN + ",\"msg\":\"" + msg + "\"}");
                 });
         return http.build();
+    }
+
+    private String resolveLang(String acceptLang, String langParam) {
+        if (langParam != null && (langParam.startsWith("en") || langParam.startsWith("zh"))) {
+            return langParam.startsWith("en") ? "en" : "zh";
+        }
+        if (acceptLang != null) {
+            if (acceptLang.toLowerCase().contains("zh")) return "zh";
+            if (acceptLang.toLowerCase().contains("en")) return "en";
+        }
+        return "zh";
     }
 }

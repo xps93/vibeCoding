@@ -67,4 +67,9 @@ public interface UserMapper {
      * 修改用户密码
      */
     int updatePassword(@Param("id") Long id, @Param("password") String password);
+
+    /**
+     * 根据手机号查询用户
+     */
+    User selectByPhone(String phone);
 }

@@ -4,6 +4,8 @@ import com.example.admin.entity.AiConversation;
 import com.example.admin.entity.AiMessage;
 import com.example.admin.entity.AiModel;
 import com.example.admin.entity.User;
+import com.example.admin.service.model.ModelProvider;
+import com.example.admin.service.model.ModelProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,33 +31,54 @@ public class AiChatService {
     private AiMessageService messageService;
 
     @Autowired
-    private DeepSeekClient deepSeekClient;
+    private ModelProviderFactory providerFactory;
 
     @Autowired
     private AiModelService modelService;
 
     @Autowired
+    private AiDocumentService documentService;
+
+    @Autowired
     private StreamSessionManager streamSessionManager;
 
+    @Autowired
+    private WebSearchService webSearchService;
+
     /**
-     * SSE流式聊天，调用DeepSeek API并逐字返回
+     * SSE流式聊天，根据模型提供者路由到对应API
      */
-    public SseEmitter chat(User user, Long conversationId, String content, String modelId,
-                           List<Long> knowledgeBaseIds, Double temperature, Integer maxTokens,
-                           String systemPrompt) {
+    public SseEmitter chat(User user, Long conversationId, String content, Long documentId,
+                           String modelId, List<Long> knowledgeBaseIds, Double temperature,
+                           Integer maxTokens, String systemPrompt, Boolean webSearch) {
         SseEmitter emitter = new SseEmitter(300000L);
 
         AiConversation conv = conversationService.getById(conversationId);
-        if (conv == null || !conv.getUserId().equals(user.getId())) {
+        if (conv == null || conv.getUserId() == null || !conv.getUserId().equals(user.getId())) {
             sendSseError(emitter, "对话不存在或无权访问");
             return emitter;
         }
 
-        // 保存用户消息
-        messageService.save(conversationId, "user", content);
+        // 如果携带了文档ID，后端自动注入文档内容作为上下文
+        String finalContent = content;
+        if (documentId != null) {
+            com.example.admin.entity.AiDocument doc = documentService.getById(documentId);
+            if (doc != null && doc.getContent() != null && !doc.getContent().isEmpty()) {
+                finalContent = "[文档: " + doc.getFileName() + "]\n" + doc.getContent()
+                        + "\n\n---\n用户问题:\n" + (content != null ? content : "");
+            }
+        }
 
-        // 解析模型key：优先通过ID查找模型获取modelKey，否则使用默认模型
-        String apiModelKey = resolveModelKey(modelId);
+        // 保存用户消息（仅保存用户可见内容，不含文档内容）
+        messageService.save(conversationId, "user", content != null ? content : "");
+
+        // 解析模型信息：获取modelKey和provider
+        AiModel model = resolveModel(modelId);
+        String apiModelKey = model != null ? model.getModelKey() : null;
+        String modelProvider = model != null ? model.getProvider() : null;
+
+        // 通过工厂获取对应的模型提供者
+        ModelProvider provider = providerFactory.getProvider(modelProvider);
 
         // 更新对话模型
         if (modelId != null && !modelId.isEmpty()) {
@@ -70,21 +93,25 @@ public class AiChatService {
         // 首条消息更新对话标题
         List<AiMessage> existingMsgs = messageService.listByConversationId(conversationId);
         if (existingMsgs.size() <= 1 && "新对话".equals(conv.getTitle())) {
-            String newTitle = content.length() > 20 ? content.substring(0, 20) + "..." : content;
+            String displayContent = content != null && !content.isEmpty() ? content : finalContent;
+            String newTitle = displayContent.length() > 20 ? displayContent.substring(0, 20) + "..." : displayContent;
             conv.setTitle(newTitle);
             conv.setUpdateTime(LocalDateTime.now());
             conversationService.update(conv);
         }
 
-        // 构建对话历史
-        List<Map<String, String>> messages = buildMessages(existingMsgs, content, systemPrompt);
+        // 构建对话历史（使用包含文档内容的最终消息）
+        List<Map<String, String>> messages = buildMessages(existingMsgs, finalContent, systemPrompt, webSearch);
 
-        // 调用DeepSeek API流式返回
+        // 调用模型提供者流式返回
+        final String resolvedModelKey = (apiModelKey != null && !apiModelKey.isEmpty())
+                ? apiModelKey : "deepseek-chat";
         StringBuilder fullReply = new StringBuilder();
+        StringBuilder fullReasoning = new StringBuilder();
         new Thread(() -> {
             try {
-                deepSeekClient.streamChat(messages, apiModelKey, temperature, maxTokens,
-                        new DeepSeekClient.StreamCallback() {
+                provider.streamChat(messages, resolvedModelKey, temperature, maxTokens,
+                        new ModelProvider.StreamCallback() {
                             @Override
                             public void onContent(String chunk) {
                                 fullReply.append(chunk);
@@ -97,6 +124,17 @@ public class AiChatService {
                             }
 
                             @Override
+                            public void onReasoningContent(String reasoningChunk) {
+                                fullReasoning.append(reasoningChunk);
+                                try {
+                                    emitter.send(SseEmitter.event()
+                                            .data("{\"reasoning_content\":\"" + escapeJson(reasoningChunk) + "\"}"));
+                                } catch (IOException e) {
+                                    log.error("SSE send reasoning error", e);
+                                }
+                            }
+
+                            @Override
                             public void onDone() {
                                 try {
                                     emitter.send(SseEmitter.event().data("{\"done\":true}"));
@@ -104,14 +142,20 @@ public class AiChatService {
                                 } catch (IOException e) {
                                     log.error("SSE complete error", e);
                                 }
-                                messageService.save(conversationId, "assistant", fullReply.toString());
+                                String savedContent = fullReasoning.length() > 0
+                                        ? "[思考]\n" + fullReasoning.toString() + "\n\n" + fullReply.toString()
+                                        : fullReply.toString();
+                                messageService.save(conversationId, "assistant", savedContent);
                             }
 
                             @Override
                             public void onError(String error) {
                                 sendSseError(emitter, error);
-                                if (fullReply.length() > 0) {
-                                    messageService.save(conversationId, "assistant", fullReply.toString());
+                                if (fullReply.length() > 0 || fullReasoning.length() > 0) {
+                                    String savedContent = fullReasoning.length() > 0
+                                            ? "[思考]\n" + fullReasoning.toString() + "\n\n" + fullReply.toString()
+                                            : fullReply.toString();
+                                    messageService.save(conversationId, "assistant", savedContent);
                                 }
                             }
                         });
@@ -128,40 +172,51 @@ public class AiChatService {
     }
 
     /**
-     * 将用户选择的模型ID解析为DeepSeek API的模型key，解析失败则返回默认模型
+     * 根据模型ID解析AiModel对象
      */
-    private String resolveModelKey(String modelId) {
+    private AiModel resolveModel(String modelId) {
         try {
             if (modelId != null && !modelId.isEmpty()) {
                 Long id = Long.valueOf(modelId);
-                AiModel model = modelService.getById(id);
-                if (model != null && model.getModelKey() != null && !model.getModelKey().isEmpty()) {
-                    return model.getModelKey();
-                }
-                // 兜底：模型存在但没有modelKey，用模型name
-                if (model != null && model.getName() != null && !model.getName().isEmpty()) {
-                    return model.getName();
-                }
+                return modelService.getById(id);
             }
         } catch (NumberFormatException e) {
-            // modelId不是数字，直接作为模型key使用
-            return modelId;
+            // modelId不是数字，忽略
         }
-        return null; // 使用DeepSeekClient的defaultModel
+        return null;
     }
 
     /**
-     * 构建消息列表（系统提示 + 历史消息 + 当前消息）
+     * 构建消息列表（系统提示 + 搜索上下文 + 历史消息 + 当前消息）
      */
     private List<Map<String, String>> buildMessages(List<AiMessage> history,
-                                                     String currentContent, String systemPrompt) {
+                                                     String currentContent, String systemPrompt, Boolean webSearch) {
         List<Map<String, String>> messages = new ArrayList<>();
+
+        // 联网搜索：调用搜索API获取实时信息，注入到系统提示中
+        String searchContext = "";
+        if (Boolean.TRUE.equals(webSearch) && currentContent != null && currentContent.trim().length() > 0) {
+            // 提取搜索关键词（使用用户问题原文）
+            String query = currentContent.length() > 200 ? currentContent.substring(0, 200) : currentContent;
+            searchContext = webSearchService.search(query);
+        }
 
         // 系统提示
         if (systemPrompt != null && !systemPrompt.isEmpty()) {
             Map<String, String> sysMsg = new HashMap<>();
             sysMsg.put("role", "system");
-            sysMsg.put("content", systemPrompt);
+            String prompt = systemPrompt;
+            // 注入联网搜索结果
+            if (searchContext != null && searchContext.length() > 0) {
+                prompt += "\n\n" + searchContext;
+            }
+            sysMsg.put("content", prompt);
+            messages.add(sysMsg);
+        } else if (searchContext != null && searchContext.length() > 0) {
+            // 没有系统提示但有搜索结果，单独添加搜索上下文
+            Map<String, String> sysMsg = new HashMap<>();
+            sysMsg.put("role", "system");
+            sysMsg.put("content", searchContext);
             messages.add(sysMsg);
         }
 

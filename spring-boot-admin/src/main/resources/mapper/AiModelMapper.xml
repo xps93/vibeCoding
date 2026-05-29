@@ -8,16 +8,47 @@
         <result property="name" column="name"/>
         <result property="provider" column="provider"/>
         <result property="capabilities" column="capabilities"/>
+        <result property="apiBaseUrl" column="api_base_url"/>
+        <result property="apiKey" column="api_key"/>
+        <result property="sort" column="sort"/>
         <result property="status" column="status"/>
         <result property="createTime" column="create_time"/>
     </resultMap>
 
     <select id="selectAll" resultMap="modelMap">
-        SELECT * FROM ai_model WHERE status = 0 ORDER BY id
+        SELECT * FROM ai_model WHERE status = 0 ORDER BY sort, id
+    </select>
+
+    <select id="selectAllWithDisabled" resultMap="modelMap">
+        SELECT * FROM ai_model ORDER BY sort, id
     </select>
 
     <select id="selectById" resultMap="modelMap">
         SELECT * FROM ai_model WHERE id = #{id}
     </select>
+
+    <insert id="insert" parameterType="com.example.admin.entity.AiModel" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_model(model_key, name, provider, capabilities, api_base_url, api_key, sort, status, create_time)
+        VALUES(#{modelKey}, #{name}, #{provider}, #{capabilities}, #{apiBaseUrl}, #{apiKey}, #{sort}, #{status}, NOW())
+    </insert>
+
+    <update id="update" parameterType="com.example.admin.entity.AiModel">
+        UPDATE ai_model
+        <set>
+            <if test="modelKey != null">model_key = #{modelKey},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="provider != null">provider = #{provider},</if>
+            <if test="capabilities != null">capabilities = #{capabilities},</if>
+            <if test="apiBaseUrl != null">api_base_url = #{apiBaseUrl},</if>
+            <if test="apiKey != null">api_key = #{apiKey},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_model WHERE id = #{id}
+    </delete>
 
 </mapper>

@@ -99,10 +99,14 @@ public class DeepSeekClient {
                 }
 
                 try {
-                    // 简单解析 OpenAI 格式的JSON，提取 content
+                    // 解析 OpenAI 格式的JSON，提取 content 和 reasoning_content
                     String content = extractContent(data);
                     if (content != null && !content.isEmpty()) {
                         callback.onContent(content);
+                    }
+                    String reasoning = extractReasoningContent(data);
+                    if (reasoning != null && !reasoning.isEmpty()) {
+                        callback.onReasoningContent(reasoning);
                     }
                 } catch (Exception e) {
                     log.warn("解析SSE数据失败: {}", data);
@@ -119,24 +123,35 @@ public class DeepSeekClient {
      * 从OpenAI格式的SSE数据中提取content
      */
     private String extractContent(String json) {
+        return extractDeltaField(json, "content");
+    }
+
+    /**
+     * 从OpenAI格式的SSE数据中提取reasoning_content（深度思考）
+     */
+    private String extractReasoningContent(String json) {
+        return extractDeltaField(json, "reasoning_content");
+    }
+
+    /**
+     * 从delta对象中提取指定字段的字符串值
+     */
+    private String extractDeltaField(String json, String fieldName) {
         int deltaIdx = json.indexOf("\"delta\"");
         if (deltaIdx < 0) return null;
-        int contentIdx = json.indexOf("\"content\"", deltaIdx);
-        if (contentIdx < 0) return null;
-        int colonIdx = json.indexOf(":", contentIdx);
+        int fieldIdx = json.indexOf("\"" + fieldName + "\"", deltaIdx);
+        if (fieldIdx < 0) return null;
+        int colonIdx = json.indexOf(":", fieldIdx);
         if (colonIdx < 0) return null;
-        // 跳过冒号后的空白
         int valStart = colonIdx + 1;
         while (valStart < json.length() && (json.charAt(valStart) == ' ' || json.charAt(valStart) == '\t')) {
             valStart++;
         }
-        // content 值为 null 时不处理（reasoning_content 推理内容跳过）
         if (valStart >= json.length() || json.charAt(valStart) != '"') return null;
         int startQuote = valStart;
         int endQuote = json.indexOf("\"", startQuote + 1);
         if (endQuote < 0) return null;
         String raw = json.substring(startQuote + 1, endQuote);
-        // 空字符串不处理
         if (raw.isEmpty()) return null;
         return unescapeJson(raw);
     }
@@ -164,6 +179,7 @@ public class DeepSeekClient {
      */
     public interface StreamCallback {
         void onContent(String content);
+        void onReasoningContent(String reasoningContent);
         void onDone();
         void onError(String error);
     }

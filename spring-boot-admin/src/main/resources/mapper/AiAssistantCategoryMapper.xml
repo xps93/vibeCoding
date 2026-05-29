@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.AiAssistantCategoryMapper">
+
+    <resultMap id="catMap" type="com.example.admin.entity.AiAssistantCategory">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="catMap">
+        SELECT * FROM ai_assistant_category WHERE status = 0 ORDER BY sort, id
+    </select>
+
+    <select id="selectById" resultMap="catMap">
+        SELECT * FROM ai_assistant_category WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_assistant_category(name, sort, status, create_time)
+        VALUES(#{name}, #{sort}, #{status}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE ai_assistant_category
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_assistant_category WHERE id = #{id}
+    </delete>
+
+</mapper>

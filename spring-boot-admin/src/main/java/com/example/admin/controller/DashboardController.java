@@ -1,6 +1,7 @@
 package com.example.admin.controller;
 
 import com.example.admin.entity.Result;
+import com.example.admin.entity.Result;
 import com.example.admin.mapper.*;
 import com.example.admin.store.DataStore;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +31,12 @@ public class DashboardController {
     @Autowired
     private PostMapper postMapper;
     @Autowired
+    private AiConversationMapper conversationMapper;
+    @Autowired
+    private AiMessageMapper messageMapper;
+    @Autowired
+    private AiModelMapper modelMapper;
+    @Autowired
     private DataStore store;
 
     @GetMapping
@@ -43,6 +50,10 @@ public class DashboardController {
         stats.put("deptCount", deptMapper.selectList(null).size());
         stats.put("postCount", postMapper.selectList(null).size());
         stats.put("onlineCount", store.tokenMap.size());
+
+        // AI统计
+        stats.put("aiConversationCount", conversationMapper.countAll(null, null));
+        stats.put("aiModelCount", modelMapper.selectAllWithDisabled().size());
         data.put("stats", stats);
 
         try {

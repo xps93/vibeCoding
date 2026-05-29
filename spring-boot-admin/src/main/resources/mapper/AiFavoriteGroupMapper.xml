@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.AiFavoriteGroupMapper">
+
+    <resultMap id="groupMap" type="com.example.admin.entity.AiFavoriteGroup">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="sort" column="sort"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_favorite_group(user_id, name, sort, create_time)
+        VALUES(#{userId}, #{name}, #{sort}, #{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_favorite_group SET name = #{name}, sort = #{sort} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_favorite_group WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" resultMap="groupMap">
+        SELECT * FROM ai_favorite_group WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserId" resultMap="groupMap">
+        SELECT * FROM ai_favorite_group WHERE user_id = #{userId} ORDER BY sort ASC, create_time ASC
+    </select>
+
+</mapper>

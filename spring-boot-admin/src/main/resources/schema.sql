@@ -161,8 +161,11 @@ CREATE TABLE IF NOT EXISTS ai_model (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   model_key VARCHAR(50) NOT NULL DEFAULT '' COMMENT 'API模型标识，如deepseek-chat',
   name VARCHAR(100) NOT NULL,
-  provider VARCHAR(50) NOT NULL DEFAULT '',
+  provider VARCHAR(50) NOT NULL DEFAULT '' COMMENT '提供商标识: deepseek/openai/qwen/zhipu/moonshot',
   capabilities VARCHAR(200) DEFAULT '' COMMENT '逗号分隔: chat,code,reasoning',
+  api_base_url VARCHAR(300) DEFAULT '' COMMENT 'API基础URL，为空则使用默认配置',
+  api_key VARCHAR(200) DEFAULT '' COMMENT '模型专属API密钥，为空则使用全局配置',
+  sort INT DEFAULT 0 COMMENT '排序号',
   status INT DEFAULT 0 COMMENT '0=启用 1=禁用',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -196,4 +199,109 @@ CREATE TABLE IF NOT EXISTS sys_job (
   cron_expression VARCHAR(200) DEFAULT '',
   status INT DEFAULT 0 COMMENT '0=正常 1=暂停',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 站点配置表
+CREATE TABLE IF NOT EXISTS sys_site_config (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  config_key VARCHAR(100) NOT NULL UNIQUE,
+  config_value VARCHAR(500) NOT NULL DEFAULT '',
+  config_name VARCHAR(100) NOT NULL COMMENT '配置名称',
+  remark VARCHAR(200) DEFAULT '' COMMENT '备注',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 助手分类表
+CREATE TABLE IF NOT EXISTS ai_assistant_category (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  sort INT DEFAULT 0,
+  status INT DEFAULT 0 COMMENT '0=启用 1=禁用',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 系统错误码表（中英文双语，Redis缓存）
+CREATE TABLE IF NOT EXISTS sys_error_code (
+  code INT PRIMARY KEY COMMENT '错误码',
+  zh_msg VARCHAR(200) NOT NULL DEFAULT '' COMMENT '中文消息',
+  en_msg VARCHAR(200) NOT NULL DEFAULT '' COMMENT '英文消息',
+  module VARCHAR(50) NOT NULL DEFAULT '' COMMENT '所属模块',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- AI文档表（用户上传的文件解析存储）
+CREATE TABLE IF NOT EXISTS ai_document (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  file_name VARCHAR(255) NOT NULL DEFAULT '' COMMENT '原始文件名',
+  file_type VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'MIME类型',
+  file_size BIGINT DEFAULT 0 COMMENT '文件大小(字节)',
+  content MEDIUMTEXT COMMENT 'Tika解析后的文本内容',
+  user_id BIGINT NOT NULL COMMENT '上传用户ID',
+  conversation_id BIGINT DEFAULT NULL COMMENT '关联对话ID（可选）',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_doc_user (user_id),
+  INDEX idx_doc_conv (conversation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 对话收藏表
+CREATE TABLE IF NOT EXISTS ai_favorite (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  conversation_id BIGINT NOT NULL,
+  group_id BIGINT DEFAULT NULL COMMENT '所属分组ID',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE INDEX uniq_user_conv (user_id, conversation_id),
+  INDEX idx_fav_user (user_id),
+  INDEX idx_fav_group (group_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 迁移：为已有ai_favorite表添加group_id列（如不存在）
+-- ALTER TABLE ai_favorite ADD COLUMN IF NOT EXISTS group_id BIGINT DEFAULT NULL COMMENT '所属分组ID' AFTER conversation_id;
+
+-- 收藏分组表
+CREATE TABLE IF NOT EXISTS ai_favorite_group (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  name VARCHAR(50) NOT NULL,
+  sort INT DEFAULT 0,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_fg_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 助手模板表
+CREATE TABLE IF NOT EXISTS ai_assistant (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  category_id BIGINT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  description VARCHAR(500) DEFAULT '',
+  icon VARCHAR(50) DEFAULT '' COMMENT 'Element Plus图标名',
+  prompt TEXT NOT NULL COMMENT 'System Prompt预设',
+  sort INT DEFAULT 0,
+  status INT DEFAULT 0 COMMENT '0=启用 1=禁用',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 消息评分表
+CREATE TABLE IF NOT EXISTS ai_message_rating (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  message_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  conversation_id BIGINT NOT NULL,
+  rating INT NOT NULL COMMENT '1=赞 0=踩',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE INDEX uniq_msg_user (message_id, user_id),
+  INDEX idx_rating_conv (conversation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 对话分享表
+CREATE TABLE IF NOT EXISTS ai_share (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  conversation_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  share_token VARCHAR(64) NOT NULL UNIQUE COMMENT '分享唯一标识',
+  is_active INT DEFAULT 1 COMMENT '1=有效 0=已撤销',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_share_token (share_token),
+  INDEX idx_share_conv (conversation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

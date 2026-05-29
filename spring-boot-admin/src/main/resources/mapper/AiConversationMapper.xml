@@ -9,6 +9,8 @@
         <result property="modelId" column="model_id"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+        <result property="username" column="username"/>
+        <result property="messageCount" column="msg_count"/>
     </resultMap>
 
     <select id="selectByUserId" resultMap="convMap">
@@ -32,5 +34,35 @@
     <delete id="deleteById">
         DELETE FROM ai_conversation WHERE id = #{id}
     </delete>
+
+    <select id="selectAll" resultMap="convMap">
+        SELECT c.*, u.username,
+               (SELECT COUNT(*) FROM ai_message m WHERE m.conversation_id = c.id) AS msg_count
+        FROM ai_conversation c
+        LEFT JOIN sys_user u ON c.user_id = u.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND c.title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+        </where>
+        ORDER BY c.update_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM ai_conversation c
+        LEFT JOIN sys_user u ON c.user_id = u.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND c.title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+        </where>
+    </select>
 
 </mapper>

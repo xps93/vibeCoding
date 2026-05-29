@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.admin.mapper.AiAssistantMapper">
+
+    <resultMap id="assistantMap" type="com.example.admin.entity.AiAssistant">
+        <id property="id" column="id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="icon" column="icon"/>
+        <result property="prompt" column="prompt"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="categoryName" column="category_name"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="assistantMap">
+        SELECT a.*, c.name AS category_name
+        FROM ai_assistant a
+        LEFT JOIN ai_assistant_category c ON a.category_id = c.id
+        WHERE a.status = 0
+        ORDER BY a.sort, a.id
+    </select>
+
+    <select id="selectByCategoryId" resultMap="assistantMap">
+        SELECT a.*, c.name AS category_name
+        FROM ai_assistant a
+        LEFT JOIN ai_assistant_category c ON a.category_id = c.id
+        WHERE a.category_id = #{categoryId} AND a.status = 0
+        ORDER BY a.sort, a.id
+    </select>
+
+    <select id="selectById" resultMap="assistantMap">
+        SELECT a.*, c.name AS category_name
+        FROM ai_assistant a
+        LEFT JOIN ai_assistant_category c ON a.category_id = c.id
+        WHERE a.id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_assistant(category_id, name, description, icon, prompt, sort, status, create_time)
+        VALUES(#{categoryId}, #{name}, #{description}, #{icon}, #{prompt}, #{sort}, #{status}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE ai_assistant
+        <set>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="prompt != null">prompt = #{prompt},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_assistant WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -9,6 +9,8 @@ import java.util.List;
 @Mapper
 public interface AiMessageMapper {
 
+    AiMessage selectById(@Param("id") Long id);
+
     List<AiMessage> selectByConversationId(@Param("conversationId") Long conversationId);
 
     int insert(AiMessage message);
@@ -16,4 +18,6 @@ public interface AiMessageMapper {
     int deleteById(@Param("id") Long id);
 
     int deleteByConversationId(@Param("conversationId") Long conversationId);
+
+    int updateContent(@Param("id") Long id, @Param("content") String content);
 }
