@@ -83,7 +83,10 @@ mkdir ~/test-project && cd ~/test-project && claude
 
 配置详情参考 [DeepSeek 官方指南](https://api-docs.deepseek.com/zh-cn/quick_start/agent_integrations/claude_code)。
 
-**[截图3]** *（终端输入 /status 显示 model: deepseek-v4-pro）*
+<p align="center">
+  <img src="docs/screenshots/3.png" alt="终端 /status 截图" width="70%" />
+</p>
+<p align="center"><em>终端输入 /status 确认模型为 deepseek-v4-pro</em></p>
 
 > **重要**：DeepSeek V4-Pro 是纯文本模型，不能识别图片。你不能截图给 AI 让它照着做——只能用文字描述。如需图片识别，切回 Claude 原生模型。
 
@@ -153,7 +156,10 @@ mkdir ~/test-project && cd ~/test-project && claude
 让用户选启动哪些服务，最后打印访问地址。
 ```
 
-**[截图4]** *（Claude Code 对话示例——人说需求，AI 生成文件列表）*
+<p align="center">
+  <img src="docs/screenshots/4.png" alt="Claude Code 对话示例" width="70%" />
+</p>
+<p align="center"><em>Claude Code 对话示例——人说需求，AI 生成文件列表</em></p>
 
 ### 踩坑速查
 

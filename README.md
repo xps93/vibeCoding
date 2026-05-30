@@ -15,8 +15,12 @@
 
 **但它更重要的价值是一份教程**——从零搭建 AI 编程环境到交付商用级项目，每一步的操作方法都记录在 [GUIDE.md](./GUIDE.md) 中。
 
-**[截图1]** *（AI 用户端聊天界面）*
-**[截图2]** *（管理后台界面）*
+<p align="center">
+  <img src="docs/screenshots/1.png" alt="AI 用户端聊天界面" width="45%" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/2.png" alt="管理后台界面" width="45%" />
+</p>
+<p align="center"><em>左：AI 用户端聊天界面 &nbsp;|&nbsp; 右：管理后台界面</em></p>
 
 ---
 
