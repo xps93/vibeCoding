@@ -42,6 +42,8 @@ Vibe Coding：说想要什么 → AI 写全部代码 → 运行看效果 → 不
 
 需要三样：**Node.js ≥ 18**、**Claude Code**、**DeepSeek API Key**（10 元够用）。
 
+> **想直接运行本项目源码？** 除了上述三样，你还需要 JDK、MySQL、Redis、Maven。完整清单和安装指引见 [README.md 前置准备](./README.md#前置准备)。本节聚焦 AI 编程环境的搭建——这是 Vibe Coding 的第一步。
+
 ### 安装 Claude Code
 
 打开 PowerShell，依次执行：
@@ -277,21 +279,31 @@ git init && git add -A && git commit -m "第一版"
 
 ### 环境要求
 
-JDK ≥ 1.8 · MySQL ≥ 5.7 · Redis ≥ 3.0 · Maven ≥ 3.0 · Node.js ≥ 16
+详见 [README 前置准备](./README.md#前置准备)，完整清单：JDK ≥ 1.8 · MySQL ≥ 5.7 · Redis ≥ 3.0 · Maven ≥ 3.0 · Node.js ≥ 18 · Git
 
 ### 本地启动
 
-```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS ai_test DEFAULT CHARACTER SET utf8mb4;"
-bash start-all.sh           # Git Bash
-# 或双击 start-services.bat  # Windows 无 Git Bash
+详细步骤见 [README.md 快速开始](./README.md#快速开始)，这里简要列出：
 
-# http://localhost:5174   AI 用户端
-# http://localhost:5173   管理后台
-# http://localhost:8090/doc.html  接口文档
+```bash
+# 1. 导入数据库（含建库、30 张表、初始数据）
+mysql -u root -p < spring-boot-admin/src/main/resources/sql/schema.sql
+
+# 2. 启动全部服务（交互式选择）
+bash start-all.sh              # 在 Git Bash 中运行
+# 或双击 start-services.bat    # CMD 备选
+
+# 3. 访问
+# http://localhost:5174   → AI 用户端
+# http://localhost:5173   → 管理后台
+# http://localhost:8090/doc.html → 接口文档
 ```
 
 内置账号：`admin/admin123` · `user/user123`
+
+> **启动前必读**：`start-all.sh` 中硬编码了作者本机的 JDK/Maven 路径，你需要先改成自己的路径。详见 [README 前置准备第 4 步](./README.md#4-修改启动脚本中的路径重要)。
+>
+> 遇到报错？查看 [README 常见问题](./README.md#常见问题)。
 
 ### 公网访问
 

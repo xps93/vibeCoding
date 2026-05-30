@@ -16,15 +16,15 @@ spring-boot-admin/logs/
 .claude
 .idea
 # ======================
-# 前端 ruoyi-ai-web
+# 前端 ds_ai_web
 # ======================
-ruoyi-ai-web/.idea/
-ruoyi-ai-web/node_modules/
-ruoyi-ai-web/dist/
-ruoyi-ai-web/build/
-ruoyi-ai-web/uploads/
-ruoyi-ai-web/*.log
-ruoyi-ai-web/.env.local
+ds_ai_web/.idea/
+ds_ai_web/node_modules/
+ds_ai_web/dist/
+ds_ai_web/build/
+ds_ai_web/uploads/
+ds_ai_web/*.log
+ds_ai_web/.env.local
 
 # ======================
 # 前端 vue-admin
