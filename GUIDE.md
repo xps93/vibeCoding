@@ -2,18 +2,19 @@
 
 > 这份教程教你如何用 AI（Claude Code + DeepSeek）从零搭建一个能卖钱的 Web 项目。不需要编程基础。
 
-配套项目源码在隔壁 [README.md](./README.md)。
+配套项目源码：[README.md](./README.md)
 
 ---
 
 ## 目录
 
 1. [什么是 Vibe Coding](#1-什么是-vibe-coding)
-2. [搭建 AI 编程环境](#2-搭建-ai-编程环境)
-3. [怎么跟 AI 对话](#3-怎么跟-ai-对话)
-4. [真实案例：本项目完整开发过程](#4-真实案例本项目完整开发过程)
-5. [开始你自己的项目](#5-开始你自己的项目)
-6. [部署上线 + 安全检查](#6-部署上线--安全检查)
+2. [环境搭建（一次性，10 分钟）](#2-环境搭建一次性10-分钟)
+3. [第一个项目（跟着做，5 分钟）](#3-第一个项目跟着做5-分钟)
+4. [怎么跟 AI 对话（技巧进阶）](#4-怎么跟-ai-对话技巧进阶)
+5. [真实案例：本项目完整开发过程](#5-真实案例本项目完整开发过程)
+6. [创建你的 CLAUDE.md](#6-创建你的-claudemd)
+7. [部署上线 + 安全检查](#7-部署上线--安全检查)
 
 ---
 
@@ -36,28 +37,35 @@ Vibe Coding：说想要什么 → AI 写全部代码 → 运行看效果 → 不
 
 不需要背框架 API、不需要手写 SQL/CSS/XML、不需要提前画类图或 ER 图、不需要会 Linux。
 
+> **想直接运行本项目源码？** 除了 AI 编程环境，你还需要 JDK、MySQL、Redis、Maven。完整清单见 [README.md 前置准备](./README.md#前置准备)。本文聚焦 Vibe Coding 方法本身。
+
 ---
 
-## 2. 搭建 AI 编程环境
+## 2. 环境搭建（一次性，10 分钟）
 
-需要三样：**Node.js ≥ 18**、**Claude Code**、**DeepSeek API Key**（10 元够用）。
+只需三样东西：**Node.js ≥ 18**、**Claude Code**、**DeepSeek API Key**（10 元够用）。装一次，永久使用。
 
-> **想直接运行本项目源码？** 除了上述三样，你还需要 JDK、MySQL、Redis、Maven。完整清单和安装指引见 [README.md 前置准备](./README.md#前置准备)。本节聚焦 AI 编程环境的搭建——这是 Vibe Coding 的第一步。
+### 2.1 安装 Node.js
 
-### 安装 Claude Code
-
-打开 PowerShell，依次执行：
+打开 PowerShell：
 
 ```powershell
-node -v                          # 确认 ≥ 18，没有的话去 nodejs.org 下载
-npm install -g @anthropic-ai/claude-code
-claude --version                 # 验证
+node -v
 ```
 
-### 配置 DeepSeek
+如果显示版本号 ≥ 18，跳过。否则去 [nodejs.org](https://nodejs.org/) 下载 LTS 版安装。
 
-1. 注册 [platform.deepseek.com](https://platform.deepseek.com) → API Keys → 创建 Key → 充值 10 元
-2. 用记事本打开 `C:\Users\<你的用户名>\.claude\settings.json`：
+### 2.2 安装 Claude Code
+
+```powershell
+npm install -g @anthropic-ai/claude-code
+claude --version    # 验证安装成功
+```
+
+### 2.3 注册 DeepSeek + 配置
+
+1. 打开 [platform.deepseek.com](https://platform.deepseek.com) → 注册 → **API Keys** → 创建 Key → **充值 10 元**
+2. 用记事本打开 `C:\Users\<你的用户名>\.claude\settings.json`（没有就新建）：
 
 ```json
 {
@@ -75,48 +83,120 @@ claude --version                 # 验证
 }
 ```
 
-3. 验证：
+配置详情参考 [DeepSeek 官方指南](https://api-docs.deepseek.com/zh-cn/quick_start/agent_integrations/claude_code)。
+
+> **重要**：DeepSeek V4-Pro 是纯文本模型，不能识别图片。你不能截图给 AI 让它照着做——只能用文字描述。如需图片识别，切回 Claude 原生模型。
+
+---
+
+## 3. 第一个项目（跟着做，5 分钟）
+
+环境搭好了，现在手把手走一遍完整流程。记住这个节奏，以后每个项目都这么干。
+
+### 步骤 1：创建项目文件夹
 
 ```powershell
-mkdir ~/test-project && cd ~/test-project && claude
-# 输入 /status → 确认显示 deepseek-v4-pro
-# 输入 "创建一个 test.txt，内容 Hello" → 检查是否生成
+mkdir my-first-project
+cd my-first-project
 ```
 
-配置详情参考 [DeepSeek 官方指南](https://api-docs.deepseek.com/zh-cn/quick_start/agent_integrations/claude_code)。
+### 步骤 2：启动 Claude Code
+
+```powershell
+claude
+```
+
+终端会进入 Claude Code 交互界面，看到 `>` 提示符就表示就绪。
+
+### 步骤 3：验证环境
+
+在 `>` 后面输入：
+
+```
+/status
+```
+
+确认输出中包含 `model: deepseek-v4-pro`。如果不是，回到第 2 节检查配置。
 
 <p align="center">
   <img src="docs/screenshots/3.png" alt="终端 /status 截图" width="70%" />
 </p>
-<p align="center"><em>终端输入 /status 确认模型为 deepseek-v4-pro</em></p>
+<p align="center"><em>/status 确认模型为 deepseek-v4-pro</em></p>
 
-> **重要**：DeepSeek V4-Pro 是纯文本模型，不能识别图片。你不能截图给 AI 让它照着做——只能用文字描述。如需图片识别，切回 Claude 原生模型。
+### 步骤 4：说出你的第一句话
 
-### 创建 CLAUDE.md
+现在把你想做的项目描述给 AI。**说需求，不说技术方案**。选一个：
 
-在项目根目录放一个 `CLAUDE.md`，AI 每次对话会先读它：
-
-```markdown
-# 开发规范
-1. 注释和文档用简体中文，代码和变量名用英文
-2. Java 类名大驼峰、方法名小驼峰、缩进 4 空格
-3. 禁止 System.out，用 SLF4J
-4. 分层：Controller → Service → Mapper → Entity
-5. 禁止凭空编造不存在的类或方法
+**A. 有明确想法：**
+```
+帮我创建一个 [项目类型]，技术栈 Spring Boot + Vue 3。
+核心功能：1.XXX  2.XXX  3.XXX。数据库 MySQL，缓存 Redis。
 ```
 
-完整版见 [CLAUDE.md](./CLAUDE.md)。不用一次写全，发现 AI 风格不对就加一条。
+**B. 先练手：**
+```
+帮我创建一个任务管理 Web 应用。能添加任务、标记完成、按日期筛选、
+搜索标题。后端 Spring Boot，前端 Vue 3，数据库 MySQL。
+```
+
+**C. 经典起步项目：**
+```
+帮我创建一个个人博客系统。发布文章（标题+正文）、分类、标签、
+评论、后台管理。前端 Vue 3，后端 Spring Boot，数据库 MySQL。
+```
+
+说出去之后，AI 就开始干活了——创建文件、写代码。你看着就行。
+
+<p align="center">
+  <img src="docs/screenshots/4.png" alt="Claude Code 对话示例" width="70%" />
+</p>
+<p align="center"><em>Claude Code 对话示例——你说需求，AI 生成全部代码</em></p>
+
+### 步骤 5：运行看效果
+
+AI 写完代码后，启动项目看看：
+
+```bash
+npm install && npm run dev     # 前端
+# 浏览器打开提示的地址（通常是 http://localhost:5173）
+```
+
+点一点、用一用，感受哪些地方符合预期、哪些不对。
+
+### 步骤 6：不满意就改
+
+效果不对怎么办？**继续在 Claude Code 里说**。AI 记得之前的所有对话。
+
+```
+首页太单调了，加个头图和项目简介区域。
+登录页加个"记住密码"选项。
+把所有错误提示改成中文。
+```
+
+改完再跑一次，满意为止。
+
+### 步骤 7：保存你的代码
+
+```bash
+git init
+git add -A
+git commit -m "第一版——核心功能跑通"
+```
+
+**这是最重要的习惯**：每完成一个功能就 commit 一次。万一 AI 后面改坏了，你可以 `git reset --hard` 一键回退，而不是从头再来。
 
 ---
 
-## 3. 怎么跟 AI 对话
+## 4. 怎么跟 AI 对话（技巧进阶）
+
+跑通了第一个项目，现在升级你的对话技巧。
 
 ### 核心原则
 
 **说需求，不说实现。** 你管"要什么效果"，AI 管"用什么技术"。
 
-| 错误 | 正确 |
-|------|------|
+| 错误（说实现） | 正确（说需求） |
+|--------------|--------------|
 | "用策略模式实现多模型切换" | "支持多个 AI 模型，切换要方便，以后可能加新的" |
 | "建表，字段 id、content、role" | "每条消息要存下来，知道谁发的、发的什么、什么时间" |
 | "加个拦截器校验 token" | "没登录的人访问后台接口要提示登录" |
@@ -125,30 +205,32 @@ mkdir ~/test-project && cd ~/test-project && claude
 
 ```
 [在哪] + [干什么] + [限制条件] + [期望效果]
+```
 
+```
 "这个 Spring Boot 项目，加上 AI 对话功能，用流式输出、模型可切换，
  前端要 ChatGPT 那种打字机效果。"
 ```
 
-### 四类任务
+### 四类任务模板
 
-**从零开始**。说清楚三件事：项目类型 + 技术栈 + 3-5 个核心功能。
+**从零开始**。说清楚三件事：项目类型 + 技术栈 + 3~5 个核心功能。
 
 ```
-帮我做一个任务管理网站，后端 Spring Boot、前端 Vue 3。
-核心功能：新建任务、标记完成、按日期筛选。
+帮我做一个进销存管理系统，后端 Spring Boot、前端 Vue 3。
+核心功能：商品入库、出库、库存查询、出入库记录。
 ```
 
 **加新功能**。一次只加一个，加完 commit 再加下一个。
 
 ```
-给任务管理加个标签功能，一个任务多个标签，颜色可自定义。
+给商品管理加个批量导入功能，支持上传 Excel 文件。
 ```
 
 **全局修改**。说清楚范围——"全部"还是"只改某页"。
 
 ```
-把所有错误提示改成中文，前端做中英文切换开关。
+把所有按钮统一成蓝色圆角风格，全局生效。
 ```
 
 **写脚本**。描述流程——先干嘛、再干嘛、结果怎样。
@@ -158,19 +240,14 @@ mkdir ~/test-project && cd ~/test-project && claude
 让用户选启动哪些服务，最后打印访问地址。
 ```
 
-<p align="center">
-  <img src="docs/screenshots/4.png" alt="Claude Code 对话示例" width="70%" />
-</p>
-<p align="center"><em>Claude Code 对话示例——人说需求，AI 生成文件列表</em></p>
-
 ### 踩坑速查
 
 | 问题 | 解法 |
 |------|------|
 | AI 改太多半对半错 | 拆成小需求，每次 commit 再继续 |
-| AI 编造不存在的类 | CLAUDE.md 加"禁止编造类" |
+| AI 编造不存在的类 | CLAUDE.md 加"禁止编造不存在的类或方法" |
 | AI 理解错了 | `git reset --hard` 回退，换说法重来 |
-| 代码跑不起来 | 把报错直接贴给 AI |
+| 代码跑不起来 | **把报错信息直接贴给 AI**，它自己会修 |
 | 风格不一致 | CLAUDE.md 补充规则 |
 
 ### 建议节奏
@@ -186,7 +263,7 @@ mkdir ~/test-project && cd ~/test-project && claude
 
 ---
 
-## 4. 真实案例：本项目完整开发过程
+## 5. 真实案例：本项目完整开发过程
 
 15 次对话、不到 2 天、不到 5 元，产出 86 个 Java 类 + 50+ 前端组件 + 30 张表 + 4 份文档。
 
@@ -235,47 +312,26 @@ mkdir ~/test-project && cd ~/test-project && claude
 
 ---
 
-## 5. 开始你自己的项目
+## 6. 创建你的 CLAUDE.md
 
-```powershell
-mkdir my-project && cd my-project && claude
+AI 每次对话会先读项目根目录的 `CLAUDE.md`，把它当作"编码规范说明书"。项目初期不写也行，等发现 AI 风格不对时再加规则。
+
+在项目根目录新建 `CLAUDE.md`：
+
+```markdown
+# 开发规范
+1. 注释和文档用简体中文，代码和变量名用英文
+2. Java 类名大驼峰、方法名小驼峰、缩进 4 空格
+3. 禁止 System.out，用 SLF4J
+4. 分层：Controller → Service → Mapper → Entity
+5. 禁止凭空编造不存在的类或方法
 ```
 
-进入对话界面后，选一个：
-
-**有明确想法：**
-```
-帮我创建一个 [项目类型]，技术栈 Spring Boot + Vue 3。
-核心功能：1.XXX  2.XXX  3.XXX。数据库 MySQL，缓存 Redis。
-```
-
-**想练手：**
-```
-帮我创建一个任务管理 Web 应用。能添加任务、标记完成、按日期筛选、
-搜索标题。后端 Spring Boot，前端 Vue 3，数据库 MySQL。
-```
-
-**完全不知道做什么：**
-```
-帮我创建一个个人博客系统。发布文章（标题+正文）、分类、标签、
-评论、后台管理。前端 Vue 3，后端 Spring Boot，数据库 MySQL。
-```
-
-第一次对话结束后：
-
-```bash
-git init && git add -A && git commit -m "第一版"
-# 然后每次只加一个功能：
-"帮我加个搜索功能"
-"列表加个分页"
-"登录页优化一下 UI"
-```
-
-每次对话只做一件事，做完就 commit。
+完整版见本项目 [CLAUDE.md](./CLAUDE.md)。不用一次写全——**什么时候发现 AI 风格有问题，什么时候加一条**。积累几次对话后，AI 的输出质量会越来越稳定。
 
 ---
 
-## 6. 部署上线 + 安全检查
+## 7. 部署上线 + 安全检查
 
 ### 环境要求
 
