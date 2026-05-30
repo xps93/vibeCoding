@@ -53,7 +53,7 @@ Vibe Coding：说想要什么 → AI 写全部代码 → 运行看效果 → 不
 node -v
 ```
 
-如果显示版本号 ≥ 18，跳过。否则去 [nodejs.org](https://nodejs.org/) 下载 LTS 版安装。
+如果显示版本号 ≥ 18，跳过。否则去 [nodejs.org](https://nodejs.org/) 下载 LTS 版安装，**安装完成后关闭并重新打开 PowerShell**，再验证一次 `node -v`。
 
 ### 2.2 安装 Claude Code
 
@@ -92,6 +92,8 @@ claude --version    # 验证安装成功
 ## 3. 第一个项目（跟着做，5 分钟）
 
 环境搭好了，现在手把手走一遍完整流程。记住这个节奏，以后每个项目都这么干。
+
+> **本节所有命令在 PowerShell 中执行**（Win+R → 输入 `powershell` → 回车）。不要用 CMD，CMD 不支持部分语法。
 
 ### 步骤 1：创建项目文件夹
 
@@ -156,8 +158,9 @@ claude
 
 AI 写完代码后，启动项目看看：
 
-```bash
-npm install && npm run dev     # 前端
+```powershell
+npm install
+npm run dev
 # 浏览器打开提示的地址（通常是 http://localhost:5173）
 ```
 
@@ -177,7 +180,7 @@ npm install && npm run dev     # 前端
 
 ### 步骤 7：保存你的代码
 
-```bash
+```powershell
 git init
 git add -A
 git commit -m "第一版——核心功能跑通"
@@ -341,19 +344,30 @@ AI 每次对话会先读项目根目录的 `CLAUDE.md`，把它当作"编码规�
 
 详细步骤见 [README.md 快速开始](./README.md#快速开始)，这里简要列出：
 
-```bash
-# 1. 导入数据库（含建库、30 张表、初始数据）
+**第一步：导入数据库**（PowerShell / CMD 均可执行）
+
+```powershell
 mysql -u root -p < spring-boot-admin/src/main/resources/sql/schema.sql
-
-# 2. 启动全部服务（交互式选择）
-bash start-all.sh              # 在 Git Bash 中运行
-# 或双击 start-services.bat    # CMD 备选
-
-# 3. 访问
-# http://localhost:5174   → AI 用户端
-# http://localhost:5173   → 管理后台
-# http://localhost:8090/doc.html → 接口文档
 ```
+
+**第二步：启动服务**（二选一，不要混用）
+
+```bash
+# 方式 A：Git Bash（推荐）——右键项目文件夹 → Git Bash Here，然后执行：
+bash start-all.sh
+```
+
+```
+:: 方式 B：CMD ——直接双击 start-services.bat
+```
+
+**第三步：访问**
+
+| 地址 | 说明 |
+|------|------|
+| http://localhost:5174 | AI 用户端 |
+| http://localhost:5173 | 管理后台 |
+| http://localhost:8090/doc.html | 接口文档（Swagger） |
 
 内置账号：`admin/admin123` · `user/user123`
 
@@ -364,7 +378,7 @@ bash start-all.sh              # 在 Git Bash 中运行
 ### 公网访问
 
 1. 下载 [cloudflared.exe](https://github.com/cloudflare/cloudflared/releases) 到用户目录
-2. 运行 `bash start-all.sh`，选第 4 项
+2. 在 **Git Bash** 中运行 `bash start-all.sh`，选第 4 项
 3. 获得 `https://xxxx.trycloudflare.com` 公网地址
 
 其他方案（ngrok/frp/ZeroTier）见 [技术文档](./项目技术文档.md)。
