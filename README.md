@@ -26,18 +26,29 @@
 
 ## 快速开始
 
-```bash
-# 1. 建库
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS ai_test DEFAULT CHARACTER SET utf8mb4;"
+### 1. 导入数据库
 
-# 2. 启动
+SQL 文件位置：`spring-boot-admin/src/main/resources/sql/schema.sql`（含建库、30 张表、初始数据）
+
+**方式一：命令行导入**
+```bash
+mysql -u root -p < spring-boot-admin/src/main/resources/sql/schema.sql
+```
+
+**方式二：客户端导入**
+用 Navicat / DBeaver / HeidiSQL 等工具，新建连接 → 新建数据库 `ai_test`（字符集 utf8mb4）→ 右键"运行 SQL 文件"→ 选择 `schema.sql` 导入。
+
+### 2. 启动服务
+```bash
 bash start-all.sh
 # Windows 用户备选：双击 start-services.bat
+```
 
-# 3. 访问
-# http://localhost:5174   → AI 用户端
-# http://localhost:5173   → 管理后台
-# http://localhost:8090/doc.html → 接口文档
+### 3. 访问
+```
+http://localhost:5174   → AI 用户端
+http://localhost:5173   → 管理后台
+http://localhost:8090/doc.html → 接口文档
 ```
 
 内置账号：`admin` / `admin123` 和 `user` / `user123`
