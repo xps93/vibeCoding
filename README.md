@@ -12,7 +12,7 @@
 
 - 📦 **源码仓库**：https://gitee.com/xp_s/vibe_coding
 - 📖 **配套文档**：[技术文档](./项目技术文档.md) · [API 文档](./spring-boot-admin/API.md) · [架构文档](./spring-boot-admin/ARCHITECTURE.md)
-- 🏗️ **底层框架**：[RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue)
+- 🧠 **开发方式**：AI 从零编写，未使用任何脚手架，仅以开源文档作为提示词参考
 
 ---
 
@@ -35,7 +35,7 @@
 
 ## 1. 平台简介
 
-**Ds-Ai** 是一套全部开源的 AI 聊天平台，采用 **Spring Boot + Vue 前后端分离**架构，在 RuoYi RBAC 权限体系之上深度扩展了多模型 AI 对话、RAG 检索增强、知识库管理、国际化等能力。
+**Ds-Ai** 是一套全部开源的 AI 聊天平台，采用 **Spring Boot + Vue 前后端分离**架构，具备完整的 RBAC 权限体系，并深度扩展了多模型 AI 对话、RAG 检索增强、知识库管理、国际化等能力。
 
 ### 三大模块
 
@@ -78,7 +78,7 @@
 
 | 阶段 | Commit 信息 | 对话内容（实际对 AI 说的话） |
 |------|------------|---------------------------|
-| 🏗️ 初始化 | `init: 初始化项目` | *"帮我创建一个 Spring Boot + Vue 的后台管理系统，参考 RuoYi 架构，要有完整的 RBAC 权限"* |
+| 🏗️ 初始化 | `init: 初始化项目` | *"帮我创建一个 Spring Boot + Vue 的后台管理系统，参考业界最佳实践，要有完整的 RBAC 权限"* |
 | 🧹 清理 | `chore: 清理无效文件` | *"清理编译产物和 IDE 临时文件，配置 .gitignore"* |
 | 🤖 AI 核心 | `add ai` × 10 次迭代 | *"添加 AI 对话功能——要支持多模型切换（DeepSeek/OpenAI/通义千问/智谱），SSE 流式输出，会话历史管理"* |
 | 🚀 大版本 | `feat: RAG增强对话 + AI管理后台 + 多语言/收藏/分享` | *"加上 RAG 检索增强、国际化中英文、对话收藏和分享功能，管理后台要能管理 AI 模型配置"* |
@@ -750,7 +750,7 @@ IdeaProjects/
 
 ## 开源协议
 
-基于 [MIT](https://opensource.org/licenses/MIT) 协议开源，核心框架基于 [RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue)。
+基于 [MIT](https://opensource.org/licenses/MIT) 协议开源。」
 
 ---
 
