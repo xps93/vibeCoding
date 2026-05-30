@@ -85,19 +85,64 @@ npm install -g @anthropic-ai/claude-code
 claude --version                     # 验证
 ```
 
-### 1.3 接入 DeepSeek（省钱首选）
+### 1.3 接入 DeepSeek
 
-1. 注册 [platform.deepseek.com](https://platform.deepseek.com) → API Keys → 创建 Key
-2. 充值 10 元
-3. 配置 `~/.claude/settings.json`：
+DeepSeek 提供了与 Anthropic **完全兼容的 API 端点**，只需配置环境变量即可让 Claude Code 底层使用 DeepSeek 模型，无需任何第三方适配层。
+
+> 📖 官方配置指南：[api-docs.deepseek.com/zh-cn/quick_start/agent_integrations/claude_code](https://api-docs.deepseek.com/zh-cn/quick_start/agent_integrations/claude_code)
+
+**Step 1：获取 API Key**
+
+1. 注册 [platform.deepseek.com](https://platform.deepseek.com)
+2. 进入「API Keys」→ 创建 Key → 复制保存
+3. 充值 10 元（够开发 3-5 个这样规模的项目）
+
+**Step 2：配置 `~/.claude/settings.json`**
 
 ```json
 {
-  "model": "deepseek-v4-pro"
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "你的DeepSeek API Key",
+    "ANTHROPIC_MODEL": "deepseek-v4-pro",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-pro",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "deepseek-v4-pro",
+    "API_TIMEOUT_MS": "600000",
+    "CLAUDE_CODE_EFFORT_LEVEL": "max"
+  }
 }
 ```
 
-> 💡 本项目全程用 DeepSeek，总 API 花费 **不到 5 元**。如果用 Claude 官方 API，同样工作量大约 100-200 元。建议先用 DeepSeek 入门，效果完全够用。
+**Windows 用户也可用 PowerShell 设置环境变量**（临时生效，关窗口失效）：
+
+```powershell
+$env:ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+$env:ANTHROPIC_AUTH_TOKEN="你的DeepSeek API Key"
+$env:ANTHROPIC_MODEL="deepseek-v4-pro"
+$env:ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
+$env:ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-pro"
+$env:ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
+$env:CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-pro"
+$env:API_TIMEOUT_MS="600000"
+```
+
+> 💡 **模型分工**：`deepseek-v4-pro` 处理复杂代码和深度推理；`deepseek-v4-flash` 处理快速问答和文件读取等轻量操作。
+>
+> 💡 **超时设置**：V4-Pro 在 max effort 模式下推理耗时较长，`API_TIMEOUT_MS` 建议设 600000（10 分钟），避免长任务超时中断。
+>
+> 💡 **成本**：相比 Claude Opus 原生 API，节省 **90%+**。本项目全程用 DeepSeek，总 API 花费不到 5 元。
+
+**Step 3：验证**
+
+```bash
+claude
+# 输入 /status，确认 model 显示为 deepseek-v4-pro
+# 或直接问"你是什么模型"，应回答 DeepSeek V4 Pro
+```
+
+> ⚠️ **注意**：DeepSeek V4-Pro 是纯文本模型，不支持图片输入（截图/设计稿无法识别）。如需图片理解能力，需切换到 Claude 原生模型。
 
 ### 1.4 创建 CLAUDE.md——给 AI 的"员工手册"
 
