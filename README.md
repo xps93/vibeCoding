@@ -42,7 +42,7 @@
 | 子项目 | 定位 | 技术栈 | 端口 |
 |--------|------|--------|------|
 | **spring-boot-admin** | 后端 API 服务 | Spring Boot 2.7 + MyBatis + Redis + MySQL 8.0 | `8090` |
-| **ruoyi-ai-web** | AI 用户端 | Vue 3.5 + Element Plus + Pinia + Vite | `5174` |
+| **ds_ai_web** | AI 用户端 | Vue 3.5 + Element Plus + Pinia + Vite | `5174` |
 | **vue-admin** | 管理后台 | Vue 2.7 + Element UI + Vuex + Vite | `5173` |
 
 ### 核心亮点
@@ -367,7 +367,7 @@ bash start-all.sh
 # 界面示例：
 #   1. 后端 spring-boot-admin (8090)？ [y/N]
 #   2. 前端 vue-admin 管理后台 (5173)？ [y/N]
-#   3. 前端 ruoyi-ai-web AI聊天 (5174)？ [y/N]
+#   3. 前端 ds_ai_web AI聊天 (5174)？ [y/N]
 #   4. 公网穿透？ [y/N]
 
 # 停止全部
@@ -404,7 +404,7 @@ mvn spring-boot:run
 
 ```bash
 # AI 用户端（5174）
-cd ruoyi-ai-web && npm install && npm run dev
+cd ds_ai_web && npm install && npm run dev
 
 # 管理后台（5173）
 cd vue-admin && npm install && npm run dev
@@ -459,7 +459,7 @@ bash start-all.sh
 
 ```
 ──── 公网地址 ────
-ruoyi-ai-web:  https://sunny-moon-1234.trycloudflare.com
+ds_ai_web:  https://sunny-moon-1234.trycloudflare.com
 vue-admin:     https://dark-star-5678.trycloudflare.com
 ```
 
@@ -700,7 +700,7 @@ IdeaProjects/
 │   │   └── data.sql                   # 初始数据
 │   └── pom.xml
 │
-├── ruoyi-ai-web/                      # AI 用户端（Vue 3）
+├── ds_ai_web/                      # AI 用户端（Vue 3）
 │   └── src/
 │       ├── components/                # 17 个组件
 │       ├── stores/                    # 8 个 Pinia Store
